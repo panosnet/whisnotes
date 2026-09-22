@@ -58,10 +58,22 @@ export default function TranscriptDisplay({ segments }: TranscriptDisplayProps) 
               className="bg-slate-800 rounded-lg p-4 border border-slate-700"
             >
               <div className="flex items-start gap-3">
-                <span className="text-xs text-slate-500 font-mono mt-1">
+                {segment.speakerId != null && (
+                  <div className={`w-1 self-stretch rounded-full flex-shrink-0 ${
+                    ['bg-blue-500','bg-green-500','bg-orange-500','bg-purple-500','bg-pink-500'][Number(segment.speakerId) % 5]
+                  } opacity-70`} />
+                )}
+                <span className="text-xs text-slate-500 font-mono mt-1 w-10 flex-shrink-0">
                   {formatTimestamp(segment.timestamp)}
                 </span>
                 <div className="flex-1">
+                  {segment.speakerId != null && (
+                    <span className={`inline-block text-xs px-2 py-0.5 rounded-full text-white font-medium mb-1 ${
+                      ['bg-blue-500','bg-green-500','bg-orange-500','bg-purple-500','bg-pink-500'][Number(segment.speakerId) % 5]
+                    }`}>
+                      Speaker {Number(segment.speakerId) + 1}
+                    </span>
+                  )}
                   <p className="text-white leading-relaxed">{segment.text}</p>
                   {showTranslation && segment.translation && (
                     <p className="mt-2 text-slate-400 text-sm italic border-l-2 border-primary-600 pl-3">

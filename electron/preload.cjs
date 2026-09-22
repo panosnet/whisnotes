@@ -9,6 +9,7 @@ contextBridge.exposeInMainWorld('api', {
     stopCapture: () => ipcRenderer.invoke('audio:stop-capture'),
     onVolumeLevel: (callback) => ipcRenderer.on('audio:volume', (_e, level) => callback(level)),
     onAudioData: (callback) => ipcRenderer.on('audio:data', (_e, data) => callback(data)),
+    getRecordingPath: (meetingId) => ipcRenderer.invoke('audio:get-recording-path', meetingId),
   },
 
   // Transcription

@@ -75,26 +75,26 @@ export class StreamProcessor extends EventEmitter {
 
       console.log(`🔊 Transcribing (${whisperMode}/${modelSize}) lang:${language}...`)
 
-      let segment
+      let result: any
 
       if (whisperMode === 'local') {
         this.whisperLocalService.setModel(modelSize as any)
-        segment = await this.whisperLocalService.transcribe(chunk.buffer, meetingId, chunk.timestamp, language)
+        result = await this.whisperLocalService.transcribe(chunk.buffer, meetingId, chunk.timestamp, language)
       } else {
-        segment = await this.whisperApiService.transcribe(chunk.buffer, meetingId, chunk.timestamp, language)
+        result = await this.whisperApiService.transcribe(chunk.buffer, meetingId, chunk.timestamp, language)
       }
 
-      if (!segment.text?.trim()) {
-        console.log('Empty transcription — skipping')
-        return
-      }
-
-      const savedSegment = this.transcriptRepo.create(segment)
-      this.sendToRenderer('transcript:segment', savedSegment)
-      // Also ping the overlay
+      // Diarized results come back as an array; plain as a single segment
+      const segments = Array.isArray(result) ? result : [result]
       const { ipcMain } = await import('electron')
-      ipcMain.emit('internal:new-segment')
-      console.log(`✅ Transcript: "${savedSegment.text}"`)
+
+      for (const segment of segments) {
+        if (!segment.text?.trim()) continue
+        const savedSegment = this.transcriptRepo.create(segment)
+        this.sendToRenderer('transcript:segment', savedSegment)
+        ipcMain.emit('internal:new-segment')
+        console.log(`✅ Transcript: "${savedSegment.text}"`)
+      }
 
     } catch (error: any) {
       console.error('❌ Transcription error:', error.message)

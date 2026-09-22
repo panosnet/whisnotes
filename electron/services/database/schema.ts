@@ -32,6 +32,7 @@ export async function initializeDatabase() {
       duration_seconds INTEGER,
       recording_device TEXT,
       audio_quality TEXT,
+      recording_path TEXT,
       notes TEXT,
       tags TEXT,
       is_starred BOOLEAN DEFAULT 0,

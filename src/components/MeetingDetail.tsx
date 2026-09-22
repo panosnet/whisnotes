@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { ArrowLeft, Sparkles, Download, Languages, Clock, MapPin, Users, Star, Trash2, FileText, Pencil, Check, X as XIcon } from 'lucide-react'
+import { ArrowLeft, Sparkles, Download, Languages, Clock, MapPin, Users, Star, Trash2, FileText, Pencil, Check, X as XIcon, Volume2 } from 'lucide-react'
 import { useMeetingStore } from '../stores/meetingStore'
 import NotesPanel from './NotesPanel'
 import TagsPanel from './TagsPanel'
@@ -23,6 +23,10 @@ export default function MeetingDetail({ meeting, onBack }: MeetingDetailProps) {
   const [exportError, setExportError] = useState<string | null>(null)
   const [exportOpen, setExportOpen] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
+  const [recordingPath, setRecordingPath] = useState<string | null>(null)
+  const [currentAudioTime, setCurrentAudioTime] = useState(0)
+  const [speakerNames, setSpeakerNames] = useState<Record<number, string>>({})
+  const audioRef = useRef<HTMLAudioElement>(null)
 
   useEffect(() => {
     loadMeetingData()
@@ -48,6 +52,12 @@ export default function MeetingDetail({ meeting, onBack }: MeetingDetailProps) {
     } catch (err) {
       console.error('Failed to load analysis:', err)
     }
+
+    // Load recording path for audio playback
+    try {
+      const path = await window.api.audio.getRecordingPath(meeting.id)
+      setRecordingPath(path || null)
+    } catch { /* no recording */ }
   }
 
   const handleAnalyze = async () => {
@@ -358,6 +368,24 @@ export default function MeetingDetail({ meeting, onBack }: MeetingDetailProps) {
             </div>
           )}
 
+          {/* Audio Player */}
+          {recordingPath && (
+            <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
+              <div className="flex items-center gap-2 mb-3 text-slate-300 font-medium">
+                <Volume2 size={18} className="text-primary-400" />
+                Recording
+              </div>
+              <audio
+                ref={audioRef}
+                controls
+                src={`file://${recordingPath}`}
+                className="w-full"
+                onTimeUpdate={() => setCurrentAudioTime(audioRef.current?.currentTime || 0)}
+                style={{ accentColor: '#6366f1' }}
+              />
+            </div>
+          )}
+
           {/* Notes Panel */}
           <NotesPanel meetingId={meeting.id} />
 
@@ -457,14 +485,31 @@ export default function MeetingDetail({ meeting, onBack }: MeetingDetailProps) {
               </p>
             ) : (
               <div className="space-y-2">
-                {segments.map((segment) => (
-                  <SegmentRow
-                    key={segment.id}
-                    segment={segment}
-                    showTranslation={showTranslation}
-                    onEdit={(id, text) => handleEditSegment(id, text)}
-                  />
-                ))}
+                {segments.map((segment) => {
+                  // Highlight the segment closest to current audio time
+                  const isActive = audioRef.current && recordingPath
+                    ? segment.timestamp <= currentAudioTime && (
+                        segments.findIndex(s => s.id === segment.id) === segments.length - 1 ||
+                        segments[segments.findIndex(s => s.id === segment.id) + 1]?.timestamp > currentAudioTime
+                      )
+                    : false
+                  return (
+                    <SegmentRow
+                      key={segment.id}
+                      segment={segment}
+                      showTranslation={showTranslation}
+                      isActive={!!isActive}
+                      speakerNames={speakerNames}
+                      onEdit={(id, text) => handleEditSegment(id, text)}
+                      onSeek={recordingPath && audioRef.current
+                        ? (ts) => { if (audioRef.current) audioRef.current.currentTime = ts }
+                        : undefined}
+                      onRenameSpeaker={(speakerId, name) =>
+                        setSpeakerNames(prev => ({ ...prev, [speakerId]: name }))
+                      }
+                    />
+                  )
+                })}
               </div>
             )}
           </div>
@@ -474,18 +519,33 @@ export default function MeetingDetail({ meeting, onBack }: MeetingDetailProps) {
   )
 }
 
+const SPEAKER_COLORS = [
+  'bg-blue-500', 'bg-green-500', 'bg-orange-500', 'bg-purple-500', 'bg-pink-500',
+  'bg-teal-500', 'bg-red-500', 'bg-yellow-500',
+]
+
 // ── Inline-editable segment row ───────────────────────────────────────────────
 function SegmentRow({
   segment,
   showTranslation,
+  isActive,
+  speakerNames,
   onEdit,
+  onSeek,
+  onRenameSpeaker,
 }: {
   segment: TranscriptSegment
   showTranslation: boolean
+  isActive: boolean
+  speakerNames: Record<number, string>
   onEdit: (id: string, text: string) => Promise<void>
+  onSeek?: (timestamp: number) => void
+  onRenameSpeaker?: (speakerId: number, name: string) => void
 }) {
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(segment.text)
+  const [renamingSpk, setRenamingSpk] = useState(false)
+  const [spkDraft, setSpkDraft] = useState('')
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   const fmtTs = (secs: number) => {
@@ -506,15 +566,67 @@ function SegmentRow({
     setEditing(false)
   }
 
+  const speakerId = segment.speakerId != null ? Number(segment.speakerId) : null
+  const speakerColor = speakerId != null ? SPEAKER_COLORS[speakerId % SPEAKER_COLORS.length] : null
+  const speakerLabel = speakerId != null
+    ? (speakerNames[speakerId] || `Speaker ${speakerId + 1}`)
+    : null
+
   return (
-    <div className="group flex gap-3 px-3 py-2 rounded-lg hover:bg-slate-800/50 transition-colors">
-      {/* Timestamp */}
-      <span className="flex-shrink-0 font-mono text-xs text-slate-500 pt-1 w-12">
+    <div className={`group flex gap-3 px-3 py-2 rounded-lg transition-colors ${
+      isActive ? 'ring-2 ring-primary-500 bg-primary-900/20' : 'hover:bg-slate-800/50'
+    }`}>
+      {/* Speaker indicator bar */}
+      {speakerColor && (
+        <div className={`w-1 rounded-full flex-shrink-0 self-stretch ${speakerColor} opacity-70`} />
+      )}
+
+      {/* Timestamp — clickable to seek */}
+      <span
+        className={`flex-shrink-0 font-mono text-xs pt-1 w-12 ${
+          onSeek ? 'text-primary-400 cursor-pointer hover:text-primary-300' : 'text-slate-500'
+        }`}
+        onClick={() => onSeek?.(segment.timestamp)}
+        title={onSeek ? 'Seek to this moment' : undefined}
+      >
         {fmtTs(segment.timestamp)}
       </span>
 
       {/* Text */}
       <div className="flex-1 min-w-0">
+        {/* Speaker badge */}
+        {speakerLabel && !editing && (
+          <div className="flex items-center gap-1 mb-1">
+            {renamingSpk ? (
+              <div className="flex items-center gap-1">
+                <input
+                  autoFocus
+                  value={spkDraft}
+                  onChange={e => setSpkDraft(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') {
+                      onRenameSpeaker?.(speakerId!, spkDraft.trim() || `Speaker ${speakerId! + 1}`)
+                      setRenamingSpk(false)
+                    }
+                    if (e.key === 'Escape') setRenamingSpk(false)
+                  }}
+                  onBlur={() => setRenamingSpk(false)}
+                  className="text-xs px-2 py-0.5 bg-slate-700 border border-slate-600 rounded text-white w-28 focus:outline-none"
+                  placeholder={speakerLabel}
+                />
+              </div>
+            ) : (
+              <button
+                onClick={() => { setSpkDraft(speakerNames[speakerId!] || ''); setRenamingSpk(true) }}
+                className={`text-xs px-2 py-0.5 rounded-full text-white font-medium ${speakerColor} hover:opacity-90 transition-opacity`}
+                title="Click to rename speaker"
+              >
+                {speakerLabel}
+              </button>
+            )}
+          </div>
+        )}
+
         {editing ? (
           <div className="space-y-2">
             <textarea
@@ -551,10 +663,6 @@ function SegmentRow({
 
         {showTranslation && segment.translation && !editing && (
           <p className="text-slate-500 text-xs italic mt-1">{segment.translation}</p>
-        )}
-
-        {segment.speakerId && !editing && (
-          <span className="text-xs text-primary-400 mt-1 block">Speaker {segment.speakerId}</span>
         )}
       </div>
     </div>

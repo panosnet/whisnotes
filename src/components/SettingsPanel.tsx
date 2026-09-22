@@ -103,6 +103,10 @@ export default function SettingsPanel() {
   const [analysisProvider, setAnalysisProvider] = useState<'none' | 'anthropic' | 'openai' | 'ollama'>('none')
   const [ollamaModel, setOllamaModel] = useState('')
 
+  // Diarization
+  const [enableDiarization, setEnableDiarization] = useState(false)
+  const [hfToken, setHfToken] = useState('')
+
   const [saved, setSaved] = useState(false)
 
   useEffect(() => {
@@ -148,6 +152,11 @@ export default function SettingsPanel() {
     if (oModel) setOllamaModel(oModel)
     if (oaiKey) setOpenaiKeyLocal(oaiKey)
     if (antKey) setAnthropicKeyLocal(antKey)
+
+    const diarize = await window.api.settings.get('enableDiarization')
+    const hf = await window.api.settings.get('hfToken')
+    if (diarize !== undefined) setEnableDiarization(!!diarize)
+    if (hf) setHfToken(hf as string)
 
     // System info
     try {
@@ -275,6 +284,8 @@ export default function SettingsPanel() {
     await window.api.settings.set('analysisProvider', analysisProvider)
     await window.api.settings.set('ollamaUrl', ollamaUrl)
     await window.api.settings.set('ollamaModel', ollamaModel)
+    await window.api.settings.set('enableDiarization', enableDiarization)
+    await window.api.settings.set('hfToken', hfToken)
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
   }
@@ -520,6 +531,44 @@ export default function SettingsPanel() {
           {whisperMode === 'api' && (
             <div className="p-4 bg-amber-900/20 border border-amber-700/40 rounded-lg text-sm text-amber-300">
               Requires OpenAI API key. Cost: ~$0.006/minute ($0.36/hour). Fastest option, needs internet.
+            </div>
+          )}
+
+          {/* Speaker Diarization */}
+          {whisperMode === 'local' && (
+            <div className="space-y-3 p-4 bg-slate-800/40 border border-slate-700 rounded-xl">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-sm font-medium text-white">Speaker Diarization</div>
+                  <div className="text-xs text-slate-400 mt-0.5">Identify who said what — "Speaker 1:", "Speaker 2:"</div>
+                </div>
+                <button
+                  onClick={() => setEnableDiarization(v => !v)}
+                  className={`relative w-12 h-6 rounded-full transition-colors ${enableDiarization ? 'bg-primary-600' : 'bg-slate-700'}`}
+                >
+                  <span className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${enableDiarization ? 'translate-x-7' : 'translate-x-1'}`} />
+                </button>
+              </div>
+              {enableDiarization && (
+                <div className="space-y-2">
+                  <div className="text-xs text-slate-400 p-3 bg-slate-700/50 rounded-lg">
+                    <p className="font-medium text-slate-300 mb-1">Requirements:</p>
+                    <code className="block text-primary-300">pip install whisperx</code>
+                    <p className="mt-2 text-slate-500">Adds ~2–5s processing per audio chunk. Works best with clear multi-speaker audio.</p>
+                  </div>
+                  <div>
+                    <label className="block text-xs text-slate-400 mb-1">HuggingFace Token (optional, improves diarization)</label>
+                    <input
+                      type="password"
+                      value={hfToken}
+                      onChange={e => setHfToken(e.target.value)}
+                      placeholder="hf_..."
+                      className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-600"
+                    />
+                    <p className="text-xs text-slate-500 mt-1">Get a free token at huggingface.co — enables pyannote speaker models</p>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </Section>

@@ -61,6 +61,7 @@ export class MeetingRepository {
     if (data.notes !== undefined) { fields.push('notes = ?'); values.push(data.notes) }
     if (data.participants !== undefined) { fields.push('participants = ?'); values.push(JSON.stringify(data.participants)) }
     if (data.durationSeconds !== undefined) { fields.push('duration_seconds = ?'); values.push(data.durationSeconds) }
+    if ((data as any).recordingPath !== undefined) { fields.push('recording_path = ?'); values.push((data as any).recordingPath) }
 
     if (fields.length === 0) return false
 

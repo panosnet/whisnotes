@@ -5,6 +5,7 @@ import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
 import { randomUUID } from 'crypto'
 import { app } from 'electron'
+import Store from 'electron-store'
 import type { TranscriptSegment } from '../../types/index.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -15,6 +16,8 @@ const projectRoot = app.isPackaged
 const venvPython = join(projectRoot, 'venv/bin/python3')
 const pythonPath = existsSync(venvPython) ? venvPython : '/opt/homebrew/bin/python3'
 const serverScript = join(projectRoot, 'whisper_server.py')
+
+const store = new Store()
 
 export type WhisperModelSize =
   | 'tiny' | 'tiny.en'
@@ -28,13 +31,12 @@ export class WhisperLocalService {
   private process: ChildProcess | null = null
   private pendingResolve: ((result: any) => void) | null = null
   private pendingReject: ((err: Error) => void) | null = null
-  private timeoutHandle: NodeJS.Timeout | null = null  // must be cleared on resolve
+  private timeoutHandle: NodeJS.Timeout | null = null
   private stdoutBuffer = ''
   private sessionStartTime = 0
 
   setModel(size: WhisperModelSize) {
     if (this.modelSize !== size) {
-      // Kill existing process so next transcription reloads with new model
       this.killProcess()
     }
     this.modelSize = size
@@ -72,17 +74,13 @@ export class WhisperLocalService {
         if (!line.trim()) continue
         try {
           const result = JSON.parse(line)
-          // Only resolve on real response objects that have a 'success' field
-          // This guards against spurious stdout from ffmpeg/whisper internals
           if (this.pendingResolve && typeof result.success === 'boolean') {
-            // CRITICAL: clear the 120s timeout before it fires on the next request
             if (this.timeoutHandle) { clearTimeout(this.timeoutHandle); this.timeoutHandle = null }
             this.pendingResolve(result)
             this.pendingResolve = null
             this.pendingReject = null
           }
         } catch (e) {
-          // Non-JSON output — log and ignore; don't resolve the promise
           console.log('[Whisper server stdout]', line)
         }
       }
@@ -110,22 +108,39 @@ export class WhisperLocalService {
     meetingId: string,
     timestamp: number,
     language?: string
-  ): Promise<TranscriptSegment> {
+  ): Promise<TranscriptSegment | TranscriptSegment[]> {
     const wavBuffer = this.createWavFile(new Uint8Array(audioBuffer))
     const tempPath = join(tmpdir(), `whisnotes-${Date.now()}.wav`)
     writeFileSync(tempPath, wavBuffer)
 
     try {
       const lang = (language === 'auto' || !language) ? 'auto' : language
-      const result = await this.sendRequest(tempPath, lang, this.modelSize)
+      const enableDiarization = store.get('enableDiarization', false) as boolean
+      const result = await this.sendRequest(tempPath, lang, this.modelSize, enableDiarization)
 
       if (!result.success) {
         throw new Error(result.error || 'Transcription failed')
       }
 
-      const elapsedSecs = this.sessionStartTime
-        ? (timestamp - this.sessionStartTime) / 1000
-        : 0
+      const sessionStart = this.sessionStartTime
+
+      // If diarized, return one segment per whisperx segment
+      if (result.diarized && Array.isArray(result.segments) && result.segments.length > 0) {
+        return result.segments.map((s: any) => ({
+          id: randomUUID(),
+          meetingId,
+          timestamp: sessionStart ? Math.round(s.start) : 0,
+          text: s.text.trim(),
+          language: result.language || language || 'en',
+          confidence: typeof s.confidence === 'number' ? s.confidence : 0.9,
+          speakerId: typeof s.speakerId === 'number' ? s.speakerId : null,
+          isImportant: false,
+          createdAt: new Date(),
+        }))
+      }
+
+      // Plain transcription — single segment per chunk
+      const elapsedSecs = sessionStart ? (timestamp - sessionStart) / 1000 : 0
 
       return {
         id: randomUUID(),
@@ -134,6 +149,7 @@ export class WhisperLocalService {
         text: result.text.trim(),
         language: result.language || language || 'en',
         confidence: typeof result.confidence === 'number' ? result.confidence : 0.9,
+        speakerId: null,
         isImportant: false,
         createdAt: new Date(),
       }
@@ -142,16 +158,15 @@ export class WhisperLocalService {
     }
   }
 
-  private sendRequest(audioPath: string, language: string, model: string): Promise<any> {
+  private sendRequest(audioPath: string, language: string, model: string, diarize: boolean): Promise<any> {
     return new Promise((resolve, reject) => {
       const proc = this.ensureProcess()
       this.pendingResolve = resolve
       this.pendingReject = reject
 
-      const request = `${audioPath}|${language}|${model}\n`
+      const request = `${audioPath}|${language}|${model}|${diarize ? '1' : '0'}\n`
       proc.stdin!.write(request)
 
-      // Timeout after 120s — stored so it can be cleared when the request resolves normally
       this.timeoutHandle = setTimeout(() => {
         this.timeoutHandle = null
         if (this.pendingReject) {

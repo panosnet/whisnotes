@@ -8,6 +8,7 @@ declare global {
         startCapture: (deviceId: string, meetingId: string, language?: string) => Promise<any>
         stopCapture: () => Promise<void>
         onAudioData: (callback: (data: ArrayBuffer) => void) => void
+        getRecordingPath: (meetingId: string) => Promise<string | null>
         onVolumeLevel: (callback: (level: number) => void) => void
       }
       transcription: {
