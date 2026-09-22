@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+dist-electron/
+
+# Python virtual environment
+venv/
+
+# Whisper model cache (large files)
+~/.cache/whisper/
+
+# Native module builds
+native/macos/build/
+native/macos/.node-gyp/
+
+# Environment & secrets
+.env
+.env.local
+*.env
+
+# macOS
+.DS_Store
+**/.DS_Store
+
+# Logs
+*.log
+npm-debug.log*
+
+# Temp files
+*.part
+/tmp/whisnotes-*.wav
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Test artifacts
+coverage/
