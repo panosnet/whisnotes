@@ -109,7 +109,7 @@ export class MeetingRepository {
       recordingDevice: row.recording_device,
       audioQuality: row.audio_quality,
       notes: row.notes,
-      tags: row.tags ? JSON.parse(row.tags) : undefined,
+      // tags column on meetings table is redundant — use tag:get-by-meeting IPC instead
       isStarred: row.is_starred === 1,
       isArchived: row.is_archived === 1,
       calendarEventId: row.calendar_event_id,

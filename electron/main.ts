@@ -14,6 +14,32 @@ process.env.VITE_PUBLIC = app.isPackaged
   : path.join(process.env.DIST, '../public')
 
 let mainWindow: BrowserWindow | null = null
+let overlayWindow: BrowserWindow | null = null
+
+function createOverlay() {
+  overlayWindow = new BrowserWindow({
+    width: 260, height: 60,
+    frame: false, transparent: true, alwaysOnTop: true,
+    resizable: false, focusable: false, skipTaskbar: true,
+    webPreferences: {
+      preload: path.join(__dirname, 'overlay-preload.cjs'),
+      contextIsolation: true, nodeIntegration: false,
+    },
+  })
+  overlayWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true })
+
+  const isDev = !app.isPackaged
+  if (isDev) {
+    overlayWindow.loadURL('http://localhost:5173/overlay.html')
+  } else {
+    overlayWindow.loadFile(path.join(process.env.DIST!, 'overlay.html'))
+  }
+  overlayWindow.on('closed', () => { overlayWindow = null })
+}
+
+function sendToOverlay(channel: string, ...args: any[]) {
+  overlayWindow?.webContents.send(channel, ...args)
+}
 const VITE_DEV_SERVER_URL = process.env['VITE_DEV_SERVER_URL'] || 'http://localhost:5173'
 
 function createWindow() {
@@ -68,6 +94,23 @@ if (!gotTheLock) {
 
     // Register all IPC handlers
     registerIPCHandlers()
+
+    // Overlay lifecycle — show when recording starts, hide when stopped
+    ipcMain.on('internal:recording-started', () => {
+      if (!overlayWindow) createOverlay()
+      setTimeout(() => sendToOverlay('overlay:start'), 500) // wait for overlay to load
+    })
+    ipcMain.on('internal:recording-stopped', () => {
+      sendToOverlay('overlay:stop')
+      setTimeout(() => { overlayWindow?.close(); overlayWindow = null }, 1500)
+    })
+    // Stop button inside overlay
+    ipcMain.on('overlay:stop-recording', () => {
+      mainWindow?.webContents.send('shortcut:toggle-recording')
+    })
+    ipcMain.on('internal:new-segment', () => {
+      sendToOverlay('overlay:segment')
+    })
 
     // Register env-check handler
     const projectRoot = app.isPackaged ? path.dirname(app.getPath('exe')) : path.join(__dirname, '../')

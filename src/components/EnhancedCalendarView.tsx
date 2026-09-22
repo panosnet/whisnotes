@@ -200,7 +200,25 @@ export default function EnhancedCalendarView() {
     return `${minutes}m`
   }
 
-  const monthName = currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+  // Week navigation helpers
+  const getWeekStart = (date: Date) => {
+    const d = new Date(date)
+    d.setDate(d.getDate() - d.getDay())
+    d.setHours(0, 0, 0, 0)
+    return d
+  }
+  const getWeekDays = () => {
+    const start = getWeekStart(currentDate)
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(start); d.setDate(start.getDate() + i); return d
+    })
+  }
+  const previousWeek = () => setCurrentDate(d => { const n = new Date(d); n.setDate(n.getDate() - 7); return n })
+  const nextWeek = () => setCurrentDate(d => { const n = new Date(d); n.setDate(n.getDate() + 7); return n })
+
+  const monthName = view === 'week'
+    ? `Week of ${getWeekStart(currentDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
+    : currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
   const days = getDaysInMonth()
 
   return (
@@ -215,14 +233,12 @@ export default function EnhancedCalendarView() {
               Calendar
             </h2>
             <div className="flex gap-2">
-              <button
-                onClick={() => setView('month')}
-                className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${
-                  view === 'month' ? 'bg-primary-600' : 'bg-slate-800 hover:bg-slate-700'
-                }`}
-              >
-                Month
-              </button>
+              {(['month', 'week'] as const).map(v => (
+                <button key={v} onClick={() => setView(v)}
+                  className={`px-3 py-1.5 rounded-lg text-sm capitalize transition-colors ${
+                    view === v ? 'bg-primary-600' : 'bg-slate-800 hover:bg-slate-700'
+                  }`}>{v}</button>
+              ))}
             </div>
           </div>
 
@@ -230,7 +246,7 @@ export default function EnhancedCalendarView() {
             <h3 className="text-xl font-semibold">{monthName}</h3>
             <div className="flex gap-2">
               <button
-                onClick={previousMonth}
+                onClick={view === 'week' ? previousWeek : previousMonth}
                 className="p-2 bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors"
               >
                 <ChevronLeft size={20} />
@@ -246,7 +262,7 @@ export default function EnhancedCalendarView() {
                 Today
               </button>
               <button
-                onClick={nextMonth}
+                onClick={view === 'week' ? nextWeek : nextMonth}
                 className="p-2 bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors"
               >
                 <ChevronRight size={20} />
@@ -279,7 +295,59 @@ export default function EnhancedCalendarView() {
           </div>
         </div>
 
-        {/* Calendar Grid */}
+        {/* ── Week View ─────────────────────────────────────────────────── */}
+        {view === 'week' && (
+          <div className="flex-1 overflow-auto p-6">
+            <div className="grid grid-cols-7 gap-2">
+              {getWeekDays().map(date => {
+                const isToday = date.toDateString() === new Date().toDateString()
+                const summary = getSummaryForDay(date)
+                return (
+                  <div
+                    key={date.toISOString()}
+                    onClick={() => setSelectedDay(date)}
+                    className={`min-h-48 p-3 border rounded-xl cursor-pointer transition-all bg-slate-900 hover:bg-slate-800 ${
+                      isToday ? 'ring-2 ring-primary-600 border-primary-600/50' : 'border-slate-800'
+                    } ${selectedDay?.toDateString() === date.toDateString() ? 'ring-2 ring-blue-500' : ''}`}
+                  >
+                    <div className="flex flex-col items-center mb-3">
+                      <div className="text-xs text-slate-500 uppercase tracking-wider">
+                        {date.toLocaleDateString('en-US', { weekday: 'short' })}
+                      </div>
+                      <div className={`text-2xl font-bold mt-0.5 ${isToday ? 'text-primary-400' : 'text-white'}`}>
+                        {date.getDate()}
+                      </div>
+                    </div>
+                    {summary ? (
+                      <div className="space-y-1.5">
+                        {summary.meetings.slice(0, 4).map(m => (
+                          <div
+                            key={m.id}
+                            onClick={e => { e.stopPropagation(); setCurrentMeeting(m) }}
+                            className="text-xs p-1.5 bg-primary-600/20 border border-primary-600/30 rounded-lg hover:bg-primary-600/30 transition-colors truncate cursor-pointer"
+                          >
+                            <div className="font-medium text-primary-200 truncate">{m.title}</div>
+                            {m.durationSeconds && (
+                              <div className="text-primary-400 mt-0.5">{formatDuration(m.durationSeconds)}</div>
+                            )}
+                          </div>
+                        ))}
+                        {summary.meetingCount > 4 && (
+                          <div className="text-xs text-slate-400 text-center">+{summary.meetingCount - 4} more</div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="text-xs text-slate-600 text-center mt-4">No meetings</div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* ── Month View ─────────────────────────────────────────────────── */}
+        {view === 'month' && (
         <div className="flex-1 overflow-auto p-6">
           <div className="grid grid-cols-7 gap-2">
             {/* Day headers */}
@@ -369,6 +437,7 @@ export default function EnhancedCalendarView() {
             })}
           </div>
         </div>
+        )} {/* end month view */}
       </div>
 
       {/* Sidebar - Day Details */}

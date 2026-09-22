@@ -91,6 +91,9 @@ export class StreamProcessor extends EventEmitter {
 
       const savedSegment = this.transcriptRepo.create(segment)
       this.sendToRenderer('transcript:segment', savedSegment)
+      // Also ping the overlay
+      const { ipcMain } = await import('electron')
+      ipcMain.emit('internal:new-segment')
       console.log(`✅ Transcript: "${savedSegment.text}"`)
 
     } catch (error: any) {

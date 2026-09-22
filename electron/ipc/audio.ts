@@ -20,11 +20,15 @@ export function registerAudioHandlers() {
   // language is now a 3rd argument so per-recording language reaches Whisper
   ipcMain.handle('audio:start-capture', async (_event, deviceId: string, meetingId: string, language: string = 'auto') => {
     streamProcessor.setMeetingId(meetingId, language)
-    return await audioCaptureService.startCapture(deviceId)
+    const result = await audioCaptureService.startCapture(deviceId)
+    // Notify main process to show the floating overlay
+    ipcMain.emit('internal:recording-started')
+    return result
   })
 
   ipcMain.handle('audio:stop-capture', async () => {
     await audioCaptureService.stopCapture()
     streamProcessor.stop()
+    ipcMain.emit('internal:recording-stopped')
   })
 }

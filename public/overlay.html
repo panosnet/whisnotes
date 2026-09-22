@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: transparent;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+    -webkit-app-region: drag;
+    user-select: none;
+    overflow: hidden;
+  }
+  .recorder {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(15, 23, 42, 0.92);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 40px;
+    padding: 10px 16px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    width: 100%;
+    height: 100%;
+  }
+  .dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: #ef4444;
+    animation: pulse 1.2s ease-in-out infinite;
+    flex-shrink: 0;
+  }
+  @keyframes pulse {
+    0%,100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.85); }
+  }
+  .info { flex: 1; min-width: 0; }
+  .time {
+    color: #f87171; font-size: 14px; font-weight: 600;
+    font-variant-numeric: tabular-nums; letter-spacing: 0.5px;
+  }
+  .segments { color: #94a3b8; font-size: 11px; margin-top: 1px; }
+  .stop-btn {
+    -webkit-app-region: no-drag;
+    background: #ef4444;
+    border: none; color: white;
+    border-radius: 20px; padding: 5px 12px;
+    font-size: 12px; font-weight: 600;
+    cursor: pointer; transition: background 0.15s;
+    flex-shrink: 0;
+  }
+  .stop-btn:hover { background: #dc2626; }
+</style>
+</head>
+<body>
+<div class="recorder">
+  <div class="dot"></div>
+  <div class="info">
+    <div class="time" id="time">00:00</div>
+    <div class="segments" id="segs">Recording…</div>
+  </div>
+  <button class="stop-btn" id="stopBtn">■ Stop</button>
+</div>
+
+<script>
+  let elapsed = 0
+  let segments = 0
+  let timer = null
+
+  function fmt(s) {
+    const m = String(Math.floor(s/60)).padStart(2,'0')
+    const ss = String(s%60).padStart(2,'0')
+    return m+':'+ss
+  }
+
+  window.overlayApi = {
+    onStart: () => {
+      elapsed = 0; segments = 0
+      timer = setInterval(() => {
+        elapsed++
+        document.getElementById('time').textContent = fmt(elapsed)
+      }, 1000)
+    },
+    onStop: () => { if(timer) { clearInterval(timer); timer = null } },
+    onSegment: () => {
+      segments++
+      document.getElementById('segs').textContent = segments + ' segment' + (segments!==1?'s':'')
+    }
+  }
+
+  document.getElementById('stopBtn').addEventListener('click', () => {
+    window.electron && window.electron.stopRecording()
+  })
+
+  // Listen for IPC events
+  if (window.electron) {
+    window.electron.onStart(() => window.overlayApi.onStart())
+    window.electron.onStop(() => window.overlayApi.onStop())
+    window.electron.onSegment(() => window.overlayApi.onSegment())
+  }
+</script>
+</body>
+</html>

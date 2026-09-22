@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { ArrowLeft, Sparkles, Download, Languages, Clock, MapPin, Users, Star, Trash2, FileText, Pencil, Check, X as XIcon } from 'lucide-react'
 import { useMeetingStore } from '../stores/meetingStore'
 import NotesPanel from './NotesPanel'
+import TagsPanel from './TagsPanel'
 import type { Meeting, TranscriptSegment } from '../types'
 
 interface MeetingDetailProps {
@@ -266,6 +267,10 @@ export default function MeetingDetail({ meeting, onBack }: MeetingDetailProps) {
                   <span>{meeting.participants.length} participant(s)</span>
                 </div>
               )}
+            </div>
+            {/* Tags */}
+            <div className="mt-3">
+              <TagsPanel meetingId={meeting.id} />
             </div>
           </div>
 

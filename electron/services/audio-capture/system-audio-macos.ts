@@ -1,7 +1,8 @@
 import { EventEmitter } from 'events'
 import { join } from 'path'
-import { app } from 'electron'
+import { app, shell } from 'electron'
 import { createRequire } from 'module'
+import { checkScreenRecordingPermission } from './permission-check.js'
 
 const require = createRequire(import.meta.url)
 
@@ -41,6 +42,17 @@ export class SystemAudioMacOS extends EventEmitter {
   async start(): Promise<void> {
     if (!native) throw new Error('ScreenCaptureKit not available. Requires macOS 13+')
     if (this.isRecording) throw new Error('Already recording')
+
+    // Check Screen Recording permission before attempting capture
+    const hasPermission = await checkScreenRecordingPermission()
+    if (!hasPermission) {
+      // Open System Settings to the right panel automatically
+      shell.openExternal('x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture')
+      throw new Error(
+        'Screen Recording permission required.\n\n' +
+        'System Settings has been opened — enable your terminal or Electron app, then try again.'
+      )
+    }
 
     console.log('Starting ScreenCaptureKit audio capture...')
 
