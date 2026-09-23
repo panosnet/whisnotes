@@ -222,11 +222,11 @@ export default function EnhancedCalendarView() {
   const days = getDaysInMonth()
 
   return (
-    <div className="h-full flex bg-slate-950">
+    <div className="h-full flex bg-[#07080f]">
       {/* Main Calendar */}
       <div className="flex-1 flex flex-col">
         {/* Header */}
-        <div className="bg-slate-900 border-b border-slate-800 p-6">
+        <div className="bg-ink-900 border-b border-ink-700 p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-2xl font-bold flex items-center gap-2">
               <Calendar size={24} className="text-primary-500" />
@@ -236,7 +236,7 @@ export default function EnhancedCalendarView() {
               {(['month', 'week'] as const).map(v => (
                 <button key={v} onClick={() => setView(v)}
                   className={`px-3 py-1.5 rounded-lg text-sm capitalize transition-colors ${
-                    view === v ? 'bg-primary-600' : 'bg-slate-800 hover:bg-slate-700'
+                    view === v ? 'bg-primary-600' : 'bg-ink-800 hover:bg-slate-700'
                   }`}>{v}</button>
               ))}
             </div>
@@ -247,7 +247,7 @@ export default function EnhancedCalendarView() {
             <div className="flex gap-2">
               <button
                 onClick={view === 'week' ? previousWeek : previousMonth}
-                className="p-2 bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors"
+                className="p-2 bg-ink-800 hover:bg-slate-700 rounded-lg transition-colors"
               >
                 <ChevronLeft size={20} />
               </button>
@@ -257,13 +257,13 @@ export default function EnhancedCalendarView() {
                   setCurrentDate(today)
                   setSelectedDay(today) // also open today's panel
                 }}
-                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-sm transition-colors"
+                className="px-4 py-2 bg-ink-800 hover:bg-slate-700 rounded-lg text-sm transition-colors"
               >
                 Today
               </button>
               <button
                 onClick={view === 'week' ? nextWeek : nextMonth}
-                className="p-2 bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors"
+                className="p-2 bg-ink-800 hover:bg-slate-700 rounded-lg transition-colors"
               >
                 <ChevronRight size={20} />
               </button>
@@ -272,23 +272,23 @@ export default function EnhancedCalendarView() {
 
           {/* Month Statistics */}
           <div className="mt-4 grid grid-cols-5 gap-3">
-            <div className="bg-slate-800/50 rounded-lg p-3">
+            <div className="bg-ink-800/50 rounded-lg p-3">
               <div className="text-xs text-slate-400">Total Meetings</div>
               <div className="text-xl font-bold text-white">{monthStats.totalMeetings}</div>
             </div>
-            <div className="bg-slate-800/50 rounded-lg p-3">
+            <div className="bg-ink-800/50 rounded-lg p-3">
               <div className="text-xs text-slate-400">Total Time</div>
               <div className="text-xl font-bold text-white">{formatDuration(monthStats.totalDuration)}</div>
             </div>
-            <div className="bg-slate-800/50 rounded-lg p-3">
+            <div className="bg-ink-800/50 rounded-lg p-3">
               <div className="text-xs text-slate-400">Avg/Day</div>
               <div className="text-xl font-bold text-white">{monthStats.avgMeetingsPerDay.toFixed(1)}</div>
             </div>
-            <div className="bg-slate-800/50 rounded-lg p-3">
+            <div className="bg-ink-800/50 rounded-lg p-3">
               <div className="text-xs text-slate-400">Starred</div>
               <div className="text-xl font-bold text-yellow-400">{monthStats.starredCount}</div>
             </div>
-            <div className="bg-slate-800/50 rounded-lg p-3">
+            <div className="bg-ink-800/50 rounded-lg p-3">
               <div className="text-xs text-slate-400">Most Active</div>
               <div className="text-sm font-bold text-white truncate">{monthStats.mostProductiveDay || 'N/A'}</div>
             </div>
@@ -306,8 +306,8 @@ export default function EnhancedCalendarView() {
                   <div
                     key={date.toISOString()}
                     onClick={() => setSelectedDay(date)}
-                    className={`min-h-48 p-3 border rounded-xl cursor-pointer transition-all bg-slate-900 hover:bg-slate-800 ${
-                      isToday ? 'ring-2 ring-primary-600 border-primary-600/50' : 'border-slate-800'
+                    className={`min-h-48 p-3 border rounded-xl cursor-pointer transition-all bg-ink-900 hover:bg-ink-800 ${
+                      isToday ? 'ring-2 ring-primary-600 border-primary-600/50' : 'border-ink-700'
                     } ${selectedDay?.toDateString() === date.toDateString() ? 'ring-2 ring-blue-500' : ''}`}
                   >
                     <div className="flex flex-col items-center mb-3">
@@ -369,8 +369,8 @@ export default function EnhancedCalendarView() {
                   key={index}
                   onClick={() => date && handleDayClick(date)}
                   className={`min-h-32 p-3 border rounded-lg cursor-pointer transition-all ${
-                    date ? 'bg-slate-900 hover:bg-slate-800' : 'bg-slate-950'
-                  } ${isToday ? 'ring-2 ring-primary-600' : 'border-slate-800'} ${
+                    date ? 'bg-ink-900 hover:bg-ink-800' : 'bg-[#07080f]'
+                  } ${isToday ? 'ring-2 ring-primary-600' : 'border-ink-700'} ${
                     isSelected ? 'ring-2 ring-blue-500' : ''
                   }`}
                 >
@@ -442,9 +442,9 @@ export default function EnhancedCalendarView() {
 
       {/* Sidebar - Day Details */}
       {selectedDay && (
-        <div className="w-96 bg-slate-900 border-l border-slate-800 flex flex-col">
+        <div className="w-96 bg-ink-900 border-l border-ink-700 flex flex-col">
           {/* Sidebar Header */}
-          <div className="p-4 border-b border-slate-800 flex items-center justify-between">
+          <div className="p-4 border-b border-ink-700 flex items-center justify-between">
             <div>
               <h3 className="font-semibold text-lg">
                 {selectedDay.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
@@ -455,7 +455,7 @@ export default function EnhancedCalendarView() {
             </div>
             <button
               onClick={() => setSelectedDay(null)}
-              className="p-2 hover:bg-slate-800 rounded-lg transition-colors"
+              className="p-2 hover:bg-ink-800 rounded-lg transition-colors"
             >
               <X size={20} />
             </button>
@@ -519,7 +519,7 @@ export default function EnhancedCalendarView() {
                         <div
                           key={meeting.id}
                           onClick={() => setCurrentMeeting(meeting)}
-                          className="bg-slate-800 rounded-lg p-3 cursor-pointer hover:bg-slate-700 transition-colors border border-slate-700"
+                          className="bg-ink-800 rounded-lg p-3 cursor-pointer hover:bg-slate-700 transition-colors border border-ink-600"
                         >
                           <div className="flex items-start justify-between mb-2">
                             <div className="flex-1">
@@ -563,7 +563,7 @@ export default function EnhancedCalendarView() {
                           </div>
 
                           {meeting.participants && meeting.participants.length > 0 && (
-                            <div className="mt-2 pt-2 border-t border-slate-700">
+                            <div className="mt-2 pt-2 border-t border-ink-600">
                               <div className="flex items-center gap-1 text-xs text-slate-400">
                                 <Users size={12} />
                                 {meeting.participants.join(', ')}

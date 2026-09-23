@@ -7,7 +7,7 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Indigo-based primary — precision and calm, distinct from generic sky-blue SaaS
+        // Indigo-based primary
         primary: {
           50:  '#eef2ff',
           100: '#e0e7ff',
@@ -21,7 +21,7 @@ export default {
           900: '#312e81',
           950: '#1e1b4b',
         },
-        // Deep blue-black surfaces — has a tint that reads as intentional, not generic near-black
+        // Deep blue-black surfaces
         ink: {
           950: '#07080f',
           900: '#0e1016',
@@ -38,26 +38,8 @@ export default {
         },
       },
       fontFamily: {
-        // Use system sans — sharp, native to each platform
         sans: ['-apple-system', 'BlinkMacSystemFont', '"SF Pro Display"', '"Segoe UI"', 'system-ui', 'sans-serif'],
-        // Monospace for timestamps and technical data — feels precise, not decorative
         mono: ['"JetBrains Mono"', '"Fira Code"', 'Menlo', '"Cascadia Code"', 'monospace'],
-      },
-      fontSize: {
-        '2xs': ['0.65rem', { lineHeight: '1rem' }],
-      },
-      boxShadow: {
-        'glow-primary': '0 0 20px -4px rgba(99, 102, 241, 0.3)',
-        'glow-rec': '0 0 20px -4px rgba(249, 115, 22, 0.4)',
-      },
-      animation: {
-        'pulse-rec': 'pulse-rec 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-      },
-      keyframes: {
-        'pulse-rec': {
-          '0%, 100%': { opacity: '1', transform: 'scale(1)' },
-          '50%': { opacity: '0.5', transform: 'scale(0.92)' },
-        },
       },
     },
   },

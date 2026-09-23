@@ -48,10 +48,10 @@ function Section({ title, icon: Icon, children, defaultOpen = true }: {
 }) {
   const [open, setOpen] = useState(defaultOpen)
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
+    <div className="bg-ink-900 border border-ink-700 rounded-xl overflow-hidden">
       <button
         onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center justify-between p-5 text-left hover:bg-slate-800/50 transition-colors"
+        className="w-full flex items-center justify-between p-5 text-left hover:bg-ink-800/50 transition-colors"
       >
         <div className="flex items-center gap-3 font-semibold text-lg">
           <Icon size={20} className="text-primary-400" />
@@ -59,7 +59,7 @@ function Section({ title, icon: Icon, children, defaultOpen = true }: {
         </div>
         {open ? <ChevronDown size={18} className="text-slate-400" /> : <ChevronRight size={18} className="text-slate-400" />}
       </button>
-      {open && <div className="px-5 pb-5 space-y-5 border-t border-slate-800 pt-5">{children}</div>}
+      {open && <div className="px-5 pb-5 space-y-5 border-t border-ink-700 pt-5">{children}</div>}
     </div>
   )
 }
@@ -326,16 +326,16 @@ export default function SettingsPanel() {
         <Section title="Transcription (Whisper)" icon={Mic}>
 
           {/* Mode toggle */}
-          <div className="flex rounded-lg overflow-hidden border border-slate-700">
+          <div className="flex rounded-lg overflow-hidden border border-ink-600">
             <button
               onClick={() => setWhisperMode('local')}
-              className={`flex-1 py-2.5 text-sm font-medium transition-colors ${whisperMode === 'local' ? 'bg-primary-500 text-white' : 'bg-slate-800 text-slate-400 hover:text-white'}`}
+              className={`flex-1 py-2.5 text-sm font-medium transition-colors ${whisperMode === 'local' ? 'bg-primary-500 text-white' : 'bg-ink-800 text-slate-400 hover:text-white'}`}
             >
               🆓 Local (FREE, Private, Offline)
             </button>
             <button
               onClick={() => setWhisperMode('api')}
-              className={`flex-1 py-2.5 text-sm font-medium transition-colors ${whisperMode === 'api' ? 'bg-primary-500 text-white' : 'bg-slate-800 text-slate-400 hover:text-white'}`}
+              className={`flex-1 py-2.5 text-sm font-medium transition-colors ${whisperMode === 'api' ? 'bg-primary-500 text-white' : 'bg-ink-800 text-slate-400 hover:text-white'}`}
             >
               ☁️ OpenAI API ($0.006/min)
             </button>
@@ -349,7 +349,7 @@ export default function SettingsPanel() {
                 <select
                   value={whisperModel}
                   onChange={e => setWhisperModel(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
+                  className="w-full px-4 py-2.5 bg-ink-800 border border-ink-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
                 >
                   {WHISPER_MODELS.map(m => {
                     const downloaded = downloadedModels.includes(m.value)
@@ -386,7 +386,7 @@ export default function SettingsPanel() {
                         className={`flex items-center gap-3 p-3 rounded-lg border transition-colors cursor-pointer ${
                           whisperModel === m.value
                             ? 'border-primary-500 bg-primary-900/20'
-                            : 'border-slate-700 bg-slate-800/50 hover:border-slate-600'
+                            : 'border-ink-600 bg-ink-800/50 hover:border-slate-600'
                         }`}
                         onClick={() => !isDownloading && setWhisperModel(m.value)}
                       >
@@ -467,7 +467,7 @@ export default function SettingsPanel() {
 
               {/* Selected model card */}
               {selectedModel && (
-                <div className="bg-slate-800/60 rounded-xl p-4 space-y-4 border border-slate-700">
+                <div className="bg-ink-800/60 rounded-xl p-4 space-y-4 border border-ink-600">
                   <div className="flex items-start justify-between gap-2">
                     <div>
                       <div className="font-semibold text-white flex items-center gap-2">
@@ -513,7 +513,7 @@ export default function SettingsPanel() {
                   </div>
 
                   {systemInfo && (
-                    <div className="pt-3 border-t border-slate-700">
+                    <div className="pt-3 border-t border-ink-600">
                       {systemInfo.totalRAM >= selectedModel.ramRequired * 1.5 ? (
                         <div className="flex items-center gap-2 text-green-400 text-sm"><CheckCircle2 size={15} /> Excellent performance on your system</div>
                       ) : systemInfo.totalRAM >= selectedModel.ramRequired ? (
@@ -536,7 +536,7 @@ export default function SettingsPanel() {
 
           {/* Speaker Diarization */}
           {whisperMode === 'local' && (
-            <div className="space-y-3 p-4 bg-slate-800/40 border border-slate-700 rounded-xl">
+            <div className="space-y-3 p-4 bg-ink-800/40 border border-ink-600 rounded-xl">
               <div className="flex items-center justify-between">
                 <div>
                   <div className="text-sm font-medium text-white">Speaker Diarization</div>
@@ -601,7 +601,7 @@ export default function SettingsPanel() {
                   className={`p-3 rounded-lg border text-left transition-all ${
                     analysisProvider === p.id
                       ? 'border-primary-500 bg-primary-900/30 text-white'
-                      : 'border-slate-700 bg-slate-800 text-slate-400 hover:border-slate-600'
+                      : 'border-ink-600 bg-ink-800 text-slate-400 hover:border-slate-600'
                   }`}
                 >
                   <div className="font-medium text-sm">{p.label}</div>
@@ -613,7 +613,7 @@ export default function SettingsPanel() {
 
           {/* Ollama section */}
           {analysisProvider === 'ollama' && (
-            <div className="space-y-4 p-4 bg-slate-800/50 rounded-lg border border-slate-700">
+            <div className="space-y-4 p-4 bg-ink-800/50 rounded-lg border border-ink-600">
               {/* Header + refresh */}
               <div className="flex items-center justify-between">
                 <div className="text-sm font-medium">Ollama Configuration</div>
@@ -673,7 +673,7 @@ export default function SettingsPanel() {
                           className={`w-full text-left px-3 py-2.5 rounded-lg border transition-all ${
                             isSelected
                               ? 'border-primary-500 bg-primary-900/30'
-                              : 'border-slate-700 hover:border-slate-500 bg-slate-800/50'
+                              : 'border-ink-600 hover:border-slate-500 bg-ink-800/50'
                           }`}
                         >
                           <div className="flex items-center justify-between">
@@ -740,7 +740,7 @@ export default function SettingsPanel() {
                 </div>
               )}
 
-              <div className="text-xs text-slate-500 border-t border-slate-700 pt-3">
+              <div className="text-xs text-slate-500 border-t border-ink-600 pt-3">
                 Ollama runs models 100% locally. Get it at{' '}
                 <span className="text-primary-400 cursor-pointer" onClick={() => window.open?.('https://ollama.ai')}>ollama.ai</span>
               </div>
@@ -763,9 +763,9 @@ export default function SettingsPanel() {
                 value={openaiKey}
                 onChange={e => setOpenaiKeyLocal(e.target.value)}
                 placeholder="sk-..."
-                className="flex-1 px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                className="flex-1 px-3 py-2 bg-ink-800 border border-ink-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
               />
-              <button onClick={() => setShowOpenai(v => !v)} className="px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm hover:bg-slate-700 transition-colors">
+              <button onClick={() => setShowOpenai(v => !v)} className="px-3 py-2 bg-ink-800 border border-ink-600 rounded-lg text-sm hover:bg-slate-700 transition-colors">
                 {showOpenai ? 'Hide' : 'Show'}
               </button>
             </div>
@@ -782,9 +782,9 @@ export default function SettingsPanel() {
                 value={anthropicKey}
                 onChange={e => setAnthropicKeyLocal(e.target.value)}
                 placeholder="sk-ant-..."
-                className="flex-1 px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                className="flex-1 px-3 py-2 bg-ink-800 border border-ink-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
               />
-              <button onClick={() => setShowAnthropic(v => !v)} className="px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm hover:bg-slate-700 transition-colors">
+              <button onClick={() => setShowAnthropic(v => !v)} className="px-3 py-2 bg-ink-800 border border-ink-600 rounded-lg text-sm hover:bg-slate-700 transition-colors">
                 {showAnthropic ? 'Hide' : 'Show'}
               </button>
             </div>
@@ -798,7 +798,7 @@ export default function SettingsPanel() {
             <select
               value={defaultLanguage}
               onChange={e => setDefaultLanguage(e.target.value)}
-              className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="w-full px-3 py-2 bg-ink-800 border border-ink-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
             >
               <option value="auto">Auto-detect</option>
               <option value="en">English</option>
@@ -811,7 +811,7 @@ export default function SettingsPanel() {
               type="checkbox"
               checked={autoDetectLanguage}
               onChange={e => setAutoDetect(e.target.checked)}
-              className="w-4 h-4 rounded border-slate-700 bg-slate-800 text-primary-400 focus:ring-primary-500 focus:ring-offset-0"
+              className="w-4 h-4 rounded border-ink-600 bg-ink-800 text-primary-400 focus:ring-primary-500 focus:ring-offset-0"
             />
             <span className="text-sm">Auto-detect language per recording</span>
           </label>
@@ -824,7 +824,7 @@ export default function SettingsPanel() {
             <select
               value={theme}
               onChange={e => setTheme(e.target.value as any)}
-              className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="w-full px-3 py-2 bg-ink-800 border border-ink-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
             >
               <option value="system">System</option>
               <option value="dark">Dark</option>

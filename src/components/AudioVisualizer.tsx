@@ -69,7 +69,7 @@ export default function AudioVisualizer({ level, isActive, size = 'md' }: AudioV
             style={{
               width: barW,
               height,
-              borderRadius: barW,
+              // No borderRadius here — .wave-bar CSS handles it without conflict
               background: isActive
                 ? `hsl(${hue}, ${sat}%, ${lit}%)`
                 : '#1c2030',

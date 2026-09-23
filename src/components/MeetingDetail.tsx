@@ -211,17 +211,17 @@ export default function MeetingDetail({ meeting, onBack }: MeetingDetailProps) {
   }
 
   return (
-    <div className="h-full flex flex-col bg-slate-950">
+    <div className="h-full flex flex-col bg-[#07080f]">
       {/* Header */}
-      <div className="bg-slate-900 border-b border-slate-800 p-6">
+      <div className="bg-ink-900 border-b border-ink-700 p-6">
         {/* Delete confirmation */}
         {showDeleteConfirm && (
           <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-            <div className="bg-slate-900 border border-slate-700 rounded-xl p-6 max-w-sm mx-4 space-y-4">
+            <div className="bg-ink-900 border border-ink-600 rounded-xl p-6 max-w-sm mx-4 space-y-4">
               <h3 className="font-semibold text-lg">Delete this recording?</h3>
               <p className="text-slate-400 text-sm">This permanently deletes the meeting, transcript, and all notes.</p>
               <div className="flex gap-3">
-                <button onClick={() => setShowDeleteConfirm(false)} className="flex-1 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg">Cancel</button>
+                <button onClick={() => setShowDeleteConfirm(false)} className="flex-1 py-2 bg-ink-800 hover:bg-slate-700 rounded-lg">Cancel</button>
                 <button onClick={handleDelete} className="flex-1 py-2 bg-red-600 hover:bg-red-700 rounded-lg">Delete</button>
               </div>
             </div>
@@ -239,14 +239,14 @@ export default function MeetingDetail({ meeting, onBack }: MeetingDetailProps) {
           <div className="flex items-center gap-2">
             <button
               onClick={handleToggleStar}
-              className={`p-2 rounded-lg transition-colors ${isStarred ? 'text-yellow-400 bg-yellow-400/10' : 'text-slate-500 hover:text-yellow-400 hover:bg-slate-800'}`}
+              className={`p-2 rounded-lg transition-colors ${isStarred ? 'text-yellow-400 bg-yellow-400/10' : 'text-slate-500 hover:text-yellow-400 hover:bg-ink-800'}`}
               title={isStarred ? 'Unstar' : 'Star'}
             >
               <Star size={20} fill={isStarred ? 'currentColor' : 'none'} />
             </button>
             <button
               onClick={() => setShowDeleteConfirm(true)}
-              className="p-2 rounded-lg text-slate-500 hover:text-red-400 hover:bg-slate-800 transition-colors"
+              className="p-2 rounded-lg text-slate-500 hover:text-red-400 hover:bg-ink-800 transition-colors"
               title="Delete recording"
             >
               <Trash2 size={20} />
@@ -288,7 +288,7 @@ export default function MeetingDetail({ meeting, onBack }: MeetingDetailProps) {
             <button
               onClick={handleToggleTranslation}
               disabled={isTranslating}
-              className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 ${showTranslation ? 'bg-primary-600 text-white' : 'bg-slate-800 hover:bg-slate-700'}`}
+              className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50 ${showTranslation ? 'bg-primary-600 text-white' : 'bg-ink-800 hover:bg-slate-700'}`}
             >
               <Languages size={18} />
               {isTranslating ? 'Translating…' : 'Translation'}
@@ -297,14 +297,14 @@ export default function MeetingDetail({ meeting, onBack }: MeetingDetailProps) {
             <div className="relative">
               <button
                 onClick={() => setExportOpen(o => !o)}
-                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors flex items-center gap-2"
+                className="px-4 py-2 bg-ink-800 hover:bg-slate-700 rounded-lg transition-colors flex items-center gap-2"
               >
                 <Download size={18} />
                 Export
               </button>
               {exportOpen && (
                 <div
-                  className="absolute right-0 mt-2 w-48 bg-slate-800 border border-slate-700 rounded-lg shadow-lg z-10"
+                  className="absolute right-0 mt-2 w-48 bg-ink-800 border border-ink-600 rounded-lg shadow-lg z-10"
                   onMouseLeave={() => setExportOpen(false)}
                 >
                   {([
@@ -363,14 +363,14 @@ export default function MeetingDetail({ meeting, onBack }: MeetingDetailProps) {
         <div className="max-w-6xl mx-auto p-6 space-y-6">
           {/* Meeting Metadata */}
           {meeting.notes && (
-            <div className="bg-slate-900 border border-slate-800 rounded-lg p-4">
+            <div className="bg-ink-900 border border-ink-700 rounded-lg p-4">
               <p className="text-slate-300">{meeting.notes}</p>
             </div>
           )}
 
           {/* Audio Player */}
           {recordingPath && (
-            <div className="bg-slate-900 border border-slate-800 rounded-xl p-5">
+            <div className="bg-ink-900 border border-ink-700 rounded-xl p-5">
               <div className="flex items-center gap-2 mb-3 text-slate-300 font-medium">
                 <Volume2 size={18} className="text-primary-400" />
                 Recording
@@ -393,7 +393,7 @@ export default function MeetingDetail({ meeting, onBack }: MeetingDetailProps) {
           {currentAnalysis && (
             <div className="space-y-4">
               {/* Summary */}
-              <div className="bg-slate-900 border border-slate-800 rounded-lg p-6">
+              <div className="bg-ink-900 border border-ink-700 rounded-lg p-6">
                 <h2 className="text-xl font-semibold mb-3 flex items-center gap-2">
                   <FileText size={20} className="text-primary-500" />
                   Summary
@@ -402,7 +402,7 @@ export default function MeetingDetail({ meeting, onBack }: MeetingDetailProps) {
               </div>
 
               {/* Key Points */}
-              <div className="bg-slate-900 border border-slate-800 rounded-lg p-6">
+              <div className="bg-ink-900 border border-ink-700 rounded-lg p-6">
                 <h2 className="text-xl font-semibold mb-3">Key Points</h2>
                 <ul className="space-y-2">
                   {currentAnalysis.keyPoints.map((point, index) => (
@@ -416,7 +416,7 @@ export default function MeetingDetail({ meeting, onBack }: MeetingDetailProps) {
 
               {/* Action Items */}
               {currentAnalysis.actionItems.length > 0 && (
-                <div className="bg-slate-900 border border-slate-800 rounded-lg p-6">
+                <div className="bg-ink-900 border border-ink-700 rounded-lg p-6">
                   <h2 className="text-xl font-semibold mb-3">Action Items</h2>
                   <div className="space-y-2">
                     {currentAnalysis.actionItems.map((item, index) => (
@@ -438,7 +438,7 @@ export default function MeetingDetail({ meeting, onBack }: MeetingDetailProps) {
 
               {/* Topics */}
               {currentAnalysis.topics.length > 0 && (
-                <div className="bg-slate-900 border border-slate-800 rounded-lg p-6">
+                <div className="bg-ink-900 border border-ink-700 rounded-lg p-6">
                   <h2 className="text-xl font-semibold mb-3">Topics Discussed</h2>
                   <div className="flex flex-wrap gap-2">
                     {currentAnalysis.topics.map((topic, index) => (
@@ -456,7 +456,7 @@ export default function MeetingDetail({ meeting, onBack }: MeetingDetailProps) {
           )}
 
           {/* Full Transcript */}
-          <div className="bg-slate-900 border border-slate-800 rounded-lg p-6">
+          <div className="bg-ink-900 border border-ink-700 rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-semibold">Full Transcript</h2>
               {segments.length > 0 && (
@@ -464,14 +464,14 @@ export default function MeetingDetail({ meeting, onBack }: MeetingDetailProps) {
                   <span className="text-xs text-slate-500">{segments.length} segments</span>
                   <button
                     onClick={() => handleCopy('text')}
-                    className="px-3 py-1.5 text-xs bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors flex items-center gap-1"
+                    className="px-3 py-1.5 text-xs bg-ink-800 hover:bg-slate-700 rounded-lg transition-colors flex items-center gap-1"
                     title="Copy transcript to clipboard"
                   >
                     📋 Copy
                   </button>
                   <button
                     onClick={() => handleCopy('markdown')}
-                    className="px-3 py-1.5 text-xs bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors"
+                    className="px-3 py-1.5 text-xs bg-ink-800 hover:bg-slate-700 rounded-lg transition-colors"
                     title="Copy as Markdown"
                   >
                     ⬇ Markdown
@@ -574,7 +574,7 @@ function SegmentRow({
 
   return (
     <div className={`group flex gap-3 px-3 py-2 rounded-lg transition-colors ${
-      isActive ? 'ring-2 ring-primary-500 bg-primary-900/20' : 'hover:bg-slate-800/50'
+      isActive ? 'ring-2 ring-primary-500 bg-primary-900/20' : 'hover:bg-ink-800/50'
     }`}>
       {/* Speaker indicator bar */}
       {speakerColor && (

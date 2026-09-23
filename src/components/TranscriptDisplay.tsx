@@ -28,16 +28,16 @@ export default function TranscriptDisplay({ segments }: TranscriptDisplayProps) 
   }
 
   return (
-    <div className="h-full flex flex-col bg-slate-900">
+    <div className="h-full flex flex-col bg-ink-900">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-slate-800">
+      <div className="flex items-center justify-between p-4 border-b border-ink-700">
         <h3 className="font-semibold text-lg">Live Transcript</h3>
         <button
           onClick={toggleTranslation}
           className={`px-3 py-1.5 rounded-lg text-sm flex items-center gap-2 transition-colors ${
             showTranslation
               ? 'bg-primary-600 text-white'
-              : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+              : 'bg-ink-800 text-slate-400 hover:bg-slate-700'
           }`}
         >
           <Languages size={16} />
@@ -55,7 +55,7 @@ export default function TranscriptDisplay({ segments }: TranscriptDisplayProps) 
           segments.map((segment) => (
             <div
               key={segment.id}
-              className="bg-slate-800 rounded-lg p-4 border border-slate-700"
+              className="bg-ink-800 rounded-lg p-4 border border-ink-600"
             >
               <div className="flex items-start gap-3">
                 {segment.speakerId != null && (

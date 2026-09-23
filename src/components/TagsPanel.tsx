@@ -107,7 +107,7 @@ export default function TagsPanel({ meetingId }: { meetingId: string }) {
             autoFocus
           />
           {suggestions.length > 0 && (
-            <div className="absolute top-full left-0 mt-1 w-48 bg-slate-800 border border-slate-700 rounded-lg shadow-xl z-10 overflow-hidden">
+            <div className="absolute top-full left-0 mt-1 w-48 bg-ink-800 border border-ink-600 rounded-lg shadow-xl z-10 overflow-hidden">
               {suggestions.map(s => (
                 <button
                   key={s.id}
@@ -121,7 +121,7 @@ export default function TagsPanel({ meetingId }: { meetingId: string }) {
               {inputValue.trim() && !suggestions.some(s => s.name.toLowerCase() === inputValue.toLowerCase()) && (
                 <button
                   onMouseDown={() => addTag(inputValue)}
-                  className="w-full flex items-center gap-2 px-3 py-2 hover:bg-slate-700 transition-colors text-left border-t border-slate-700"
+                  className="w-full flex items-center gap-2 px-3 py-2 hover:bg-slate-700 transition-colors text-left border-t border-ink-600"
                 >
                   <Plus size={12} className="text-primary-400" />
                   <span className="text-sm text-primary-300">Create "{inputValue}"</span>
@@ -133,7 +133,7 @@ export default function TagsPanel({ meetingId }: { meetingId: string }) {
       ) : (
         <button
           onClick={() => setIsAdding(true)}
-          className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs text-slate-400 hover:text-white hover:bg-slate-700 border border-slate-700 hover:border-slate-600 transition-all"
+          className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs text-slate-400 hover:text-white hover:bg-slate-700 border border-ink-600 hover:border-slate-600 transition-all"
         >
           <Plus size={11} /> Tag
         </button>
