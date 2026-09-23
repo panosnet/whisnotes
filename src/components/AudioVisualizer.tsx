@@ -1,49 +1,79 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 interface AudioVisualizerProps {
-  level: number
+  level: number       // 0–1 from RMS
   isActive: boolean
+  size?: 'sm' | 'md'
 }
 
-export default function AudioVisualizer({ level, isActive }: AudioVisualizerProps) {
-  const bars = 20
-  // tick forces re-render for the idle breathing animation
-  const [tick, setTick] = useState(0)
+const N = 24  // number of bars
+
+export default function AudioVisualizer({ level, isActive, size = 'md' }: AudioVisualizerProps) {
+  const [bars, setBars] = useState(() => Array.from({ length: N }, () => 0.15))
+  const phaseRef = useRef(0)
+  const rafRef   = useRef<number>()
 
   useEffect(() => {
-    if (!isActive) return
-    const id = setInterval(() => setTick(t => t + 1), 80)
-    return () => clearInterval(id)
-  }, [isActive])
+    if (!isActive) {
+      cancelAnimationFrame(rafRef.current!)
+      // Decay slowly to zero
+      setBars(prev => prev.map(b => Math.max(0, b - 0.04)))
+      return
+    }
 
-  const now = Date.now()
+    const tick = () => {
+      phaseRef.current += 0.06
+      const p = phaseRef.current
+
+      setBars(prev => prev.map((old, i) => {
+        // Each bar has its own frequency and phase offset — gives a natural waveform look
+        const freq   = 0.6 + (i / N) * 0.8
+        const wave   = Math.sin(p * freq + i * 0.45) * 0.4 + Math.cos(p * freq * 0.7 + i * 0.3) * 0.2
+        const target = level > 0.005
+          ? Math.max(0.06, 0.08 + level * (0.5 + wave * 0.5))
+          : 0.04 + Math.sin(p * 0.4 + i * 0.6) * 0.015 + 0.015  // idle breath
+
+        // Asymmetric easing: attack fast, decay slower
+        const rate = target > old ? 0.35 : 0.18
+        return old + (target - old) * rate
+      }))
+
+      rafRef.current = requestAnimationFrame(tick)
+    }
+
+    rafRef.current = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(rafRef.current!)
+  }, [isActive, level])
+
+  const h        = size === 'sm' ? 28 : 40
+  const barW     = size === 'sm' ? 2 : 3
+  const gap      = size === 'sm' ? 1 : 2
+  const totalW   = N * (barW + gap) - gap
 
   return (
-    <div className="flex items-center gap-0.5 h-10">
-      {Array.from({ length: bars }).map((_, i) => {
-        let h: number
-        if (isActive && level > 0.01) {
-          // Active + sound: bars driven by level with per-bar wave variation
-          const wave = Math.sin(i * 0.8 + tick * 0.15) * 0.3 + Math.sin(i * 1.6) * 0.3 + 0.4
-          h = Math.max(10, Math.min(100, 10 + level * wave * 110))
-        } else if (isActive) {
-          // Active but quiet: slow idle breathing animation
-          h = 15 + Math.sin(now / 600 + i * 0.5) * 6 + 4
-        } else {
-          h = 15
-        }
+    <div style={{ width: totalW, height: h, display: 'flex', alignItems: 'center', gap }}>
+      {bars.map((b, i) => {
+        // Bars near the center are tallest — gives a natural waveform envelope
+        const centerWeight = 1 - Math.abs((i / (N - 1)) - 0.5) * 0.6
+        const height = Math.max(2, b * h * centerWeight)
+
+        // Color shifts from indigo → violet at higher levels
+        const hue  = 245 + level * 20
+        const sat  = isActive ? 70 + level * 20 : 30
+        const lit  = isActive ? 55 + level * 15 : 25
 
         return (
           <div
             key={i}
-            className={`w-1 rounded-full transition-all duration-75 ${
-              isActive && level > 0.01 * (i / bars + 0.3)
-                ? 'bg-primary-500'
-                : isActive
-                ? 'bg-primary-800'
-                : 'bg-slate-700'
-            }`}
-            style={{ height: `${h}%` }}
+            className="wave-bar flex-shrink-0"
+            style={{
+              width: barW,
+              height,
+              borderRadius: barW,
+              background: isActive
+                ? `hsl(${hue}, ${sat}%, ${lit}%)`
+                : '#1c2030',
+            }}
           />
         )
       })}

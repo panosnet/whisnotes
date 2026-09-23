@@ -104,7 +104,7 @@ export default function NotesPanel({ meetingId }: NotesPanelProps) {
   })
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-lg p-6">
+    <div className="bg-ink-900 border border-ink-700 rounded-lg p-6">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-semibold flex items-center gap-2">
           <StickyNote size={20} className="text-yellow-500" />
@@ -112,7 +112,7 @@ export default function NotesPanel({ meetingId }: NotesPanelProps) {
         </h2>
         <button
           onClick={() => setIsAdding(!isAdding)}
-          className="px-3 py-1.5 bg-primary-600 hover:bg-primary-700 rounded-lg text-sm flex items-center gap-2 transition-colors"
+          className="px-3 py-1.5 bg-primary-500 hover:bg-primary-600 rounded-lg text-sm flex items-center gap-2 transition-colors"
         >
           <Plus size={16} />
           Add Note
@@ -120,13 +120,13 @@ export default function NotesPanel({ meetingId }: NotesPanelProps) {
       </div>
 
       {isAdding && (
-        <div className="mb-4 p-4 bg-slate-800 border border-slate-700 rounded-lg">
+        <div className="mb-4 p-4 bg-ink-800 border border-ink-600 rounded-lg">
           <textarea
             value={newNote}
             onChange={(e) => setNewNote(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) handleAddNote() }}
             placeholder="Write your note… (Cmd+Enter to save)"
-            className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-primary-600 mb-3"
+            className="w-full px-3 py-2 bg-ink-900 border border-ink-600 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 mb-3"
             rows={3}
             autoFocus
           />
@@ -134,7 +134,7 @@ export default function NotesPanel({ meetingId }: NotesPanelProps) {
             <select
               value={newNoteType}
               onChange={(e) => setNewNoteType(e.target.value as Note['type'])}
-              className="px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-600"
+              className="px-3 py-1.5 bg-ink-900 border border-ink-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
             >
               {NOTE_TYPES.map(type => (
                 <option key={type.value} value={type.value}>
@@ -154,7 +154,7 @@ export default function NotesPanel({ meetingId }: NotesPanelProps) {
               </button>
               <button
                 onClick={handleAddNote}
-                className="px-3 py-1.5 bg-primary-600 hover:bg-primary-700 rounded-lg text-sm transition-colors"
+                className="px-3 py-1.5 bg-primary-500 hover:bg-primary-600 rounded-lg text-sm transition-colors"
               >
                 Save Note
               </button>
@@ -172,7 +172,7 @@ export default function NotesPanel({ meetingId }: NotesPanelProps) {
           sortedNotes.map((note) => (
             <div
               key={note.id}
-              className="p-4 bg-slate-800 border border-slate-700 rounded-lg relative group"
+              className="p-4 bg-ink-800 border border-ink-600 rounded-lg relative group"
             >
               <div className="flex items-start justify-between mb-2">
                 <span className={`px-2 py-0.5 rounded text-xs font-medium text-white ${getNoteTypeColor(note.type)}`}>
@@ -200,12 +200,12 @@ export default function NotesPanel({ meetingId }: NotesPanelProps) {
                     value={editDraft}
                     onChange={e => setEditDraft(e.target.value)}
                     onKeyDown={e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) saveEdit(note.id) }}
-                    className="w-full px-3 py-2 bg-slate-900 border border-primary-500/50 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
+                    className="w-full px-3 py-2 bg-ink-900 border border-primary-500/50 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
                     rows={3}
                     autoFocus
                   />
                   <div className="flex gap-2">
-                    <button onClick={() => saveEdit(note.id)} className="px-2 py-1 bg-primary-600 rounded text-xs flex items-center gap-1"><Check size={11}/> Save</button>
+                    <button onClick={() => saveEdit(note.id)} className="px-2 py-1 bg-primary-500 rounded text-xs flex items-center gap-1"><Check size={11}/> Save</button>
                     <button onClick={() => setEditingId(null)} className="px-2 py-1 bg-slate-700 rounded text-xs flex items-center gap-1"><XIcon size={11}/> Cancel</button>
                   </div>
                 </div>

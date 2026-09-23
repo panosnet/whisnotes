@@ -180,7 +180,7 @@ export default function CaptureView({ onViewMeeting }: { onViewMeeting?: () => v
   return (
     <div className="h-full flex flex-col">
       {/* Header */}
-      <div className="bg-slate-900 border-b border-slate-800 p-6">
+      <div className="bg-ink-900 border-b border-ink-700 p-6">
         <h2 className="text-2xl font-bold mb-4">Record Meeting</h2>
 
         {/* Error banner */}
@@ -205,7 +205,7 @@ export default function CaptureView({ onViewMeeting }: { onViewMeeting?: () => v
               onChange={(e) => setMeetingTitle(e.target.value)}
               placeholder="Optional - auto-generated if empty"
               disabled={isCapturing}
-              className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-600 disabled:opacity-50"
+              className="w-full px-3 py-2 bg-ink-800 border border-ink-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:opacity-50"
             />
           </div>
 
@@ -216,7 +216,7 @@ export default function CaptureView({ onViewMeeting }: { onViewMeeting?: () => v
               value={selectedDeviceId}
               onChange={(e) => setSelectedDevice(e.target.value)}
               disabled={isCapturing}
-              className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-600 disabled:opacity-50"
+              className="w-full px-3 py-2 bg-ink-800 border border-ink-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:opacity-50"
             >
               {devices.length === 0 && <option value="">Loading devices...</option>}
               {devices.map((device) => (
@@ -237,7 +237,7 @@ export default function CaptureView({ onViewMeeting }: { onViewMeeting?: () => v
               value={language}
               onChange={(e) => setLanguage(e.target.value as Language)}
               disabled={isCapturing}
-              className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-600 disabled:opacity-50"
+              className="w-full px-3 py-2 bg-ink-800 border border-ink-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:opacity-50"
             >
               {LANGUAGES.map((lang) => (
                 <option key={lang.code} value={lang.code}>{lang.name}</option>

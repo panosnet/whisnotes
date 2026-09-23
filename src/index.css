@@ -2,38 +2,91 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  @apply bg-slate-950 text-white;
+@layer base {
+  :root {
+    --surface: #0e1016;
+    --surface-raised: #141720;
+    --border: #1c2030;
+    --border-subtle: #141720;
+    --text: #f1f5f9;
+    --text-muted: #64748b;
+  }
+
+  html {
+    font-size: 15px;
+  }
+
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background: #07080f;
+    color: #f1f5f9;
+    letter-spacing: -0.01em;
+  }
+
+  /* Tight, precise scrollbars that don't shout */
+  ::-webkit-scrollbar        { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track  { background: transparent; }
+  ::-webkit-scrollbar-thumb  { background: #1c2030; border-radius: 2px; }
+  ::-webkit-scrollbar-thumb:hover { background: #252a3d; }
+
+  /* Monospace elements get the precision font */
+  code, kbd, pre, [data-mono] {
+    font-family: 'JetBrains Mono', 'Fira Code', Menlo, 'Cascadia Code', monospace;
+    font-size: 0.875em;
+    letter-spacing: 0;
+  }
+
+  /* Tighten focus rings to match the palette */
+  :focus-visible {
+    outline: 2px solid #6366f1;
+    outline-offset: 2px;
+  }
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+@layer components {
+  /* Reusable card surface */
+  .card {
+    @apply bg-ink-900 border border-ink-700 rounded-xl;
+  }
+
+  /* Timestamp display — monospace, muted, precise */
+  .ts {
+    font-family: 'JetBrains Mono', 'Fira Code', Menlo, monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0;
+    color: #475569;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Speaker badge */
+  .speaker-badge {
+    @apply text-2xs font-mono px-1.5 py-0.5 rounded font-semibold;
+    letter-spacing: 0.02em;
+  }
+
+  /* Subtle section divider */
+  .divider {
+    @apply border-t border-ink-700;
+  }
 }
 
-* {
-  box-sizing: border-box;
+@layer utilities {
+  .text-balance { text-wrap: balance; }
+  .font-tabular { font-variant-numeric: tabular-nums; }
 }
 
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+/* Recording pulse — used on the recording dot in sidebar and overlays */
+@keyframes rec-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.4); }
+  50%       { opacity: 0.85; transform: scale(0.9); box-shadow: 0 0 0 6px rgba(249, 115, 22, 0); }
 }
+.rec-pulse { animation: rec-pulse 1.8s ease-in-out infinite; }
 
-::-webkit-scrollbar-track {
-  @apply bg-slate-900;
-}
-
-::-webkit-scrollbar-thumb {
-  @apply bg-slate-700 rounded;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  @apply bg-slate-600;
+/* Waveform bar — driven by JS height, transition smoothed */
+.wave-bar {
+  border-radius: 2px;
+  transition: height 60ms ease-out;
 }

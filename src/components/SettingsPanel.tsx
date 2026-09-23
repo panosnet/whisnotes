@@ -329,13 +329,13 @@ export default function SettingsPanel() {
           <div className="flex rounded-lg overflow-hidden border border-slate-700">
             <button
               onClick={() => setWhisperMode('local')}
-              className={`flex-1 py-2.5 text-sm font-medium transition-colors ${whisperMode === 'local' ? 'bg-primary-600 text-white' : 'bg-slate-800 text-slate-400 hover:text-white'}`}
+              className={`flex-1 py-2.5 text-sm font-medium transition-colors ${whisperMode === 'local' ? 'bg-primary-500 text-white' : 'bg-slate-800 text-slate-400 hover:text-white'}`}
             >
               🆓 Local (FREE, Private, Offline)
             </button>
             <button
               onClick={() => setWhisperMode('api')}
-              className={`flex-1 py-2.5 text-sm font-medium transition-colors ${whisperMode === 'api' ? 'bg-primary-600 text-white' : 'bg-slate-800 text-slate-400 hover:text-white'}`}
+              className={`flex-1 py-2.5 text-sm font-medium transition-colors ${whisperMode === 'api' ? 'bg-primary-500 text-white' : 'bg-slate-800 text-slate-400 hover:text-white'}`}
             >
               ☁️ OpenAI API ($0.006/min)
             </button>
@@ -349,7 +349,7 @@ export default function SettingsPanel() {
                 <select
                   value={whisperModel}
                   onChange={e => setWhisperModel(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-600 text-sm"
+                  className="w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
                 >
                   {WHISPER_MODELS.map(m => {
                     const downloaded = downloadedModels.includes(m.value)
@@ -544,7 +544,7 @@ export default function SettingsPanel() {
                 </div>
                 <button
                   onClick={() => setEnableDiarization(v => !v)}
-                  className={`relative w-12 h-6 rounded-full transition-colors ${enableDiarization ? 'bg-primary-600' : 'bg-slate-700'}`}
+                  className={`relative w-12 h-6 rounded-full transition-colors ${enableDiarization ? 'bg-primary-500' : 'bg-slate-700'}`}
                 >
                   <span className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${enableDiarization ? 'translate-x-7' : 'translate-x-1'}`} />
                 </button>
@@ -563,7 +563,7 @@ export default function SettingsPanel() {
                       value={hfToken}
                       onChange={e => setHfToken(e.target.value)}
                       placeholder="hf_..."
-                      className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-600"
+                      className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
                     />
                     <p className="text-xs text-slate-500 mt-1">Get a free token at huggingface.co — enables pyannote speaker models</p>
                   </div>
@@ -648,7 +648,7 @@ export default function SettingsPanel() {
                   value={ollamaUrl}
                   onChange={e => setOllamaUrl(e.target.value)}
                   onBlur={checkOllama}
-                  className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-600"
+                  className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
                   placeholder="http://localhost:11434"
                 />
               </div>
@@ -703,7 +703,7 @@ export default function SettingsPanel() {
                       value={ollamaModel}
                       onChange={e => setOllamaModel(e.target.value)}
                       placeholder="e.g. llama3, mistral, phi3"
-                      className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-600"
+                      className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
                     />
                   </div>
 
@@ -763,7 +763,7 @@ export default function SettingsPanel() {
                 value={openaiKey}
                 onChange={e => setOpenaiKeyLocal(e.target.value)}
                 placeholder="sk-..."
-                className="flex-1 px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-600"
+                className="flex-1 px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
               />
               <button onClick={() => setShowOpenai(v => !v)} className="px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm hover:bg-slate-700 transition-colors">
                 {showOpenai ? 'Hide' : 'Show'}
@@ -782,7 +782,7 @@ export default function SettingsPanel() {
                 value={anthropicKey}
                 onChange={e => setAnthropicKeyLocal(e.target.value)}
                 placeholder="sk-ant-..."
-                className="flex-1 px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-600"
+                className="flex-1 px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
               />
               <button onClick={() => setShowAnthropic(v => !v)} className="px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm hover:bg-slate-700 transition-colors">
                 {showAnthropic ? 'Hide' : 'Show'}
@@ -798,7 +798,7 @@ export default function SettingsPanel() {
             <select
               value={defaultLanguage}
               onChange={e => setDefaultLanguage(e.target.value)}
-              className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-600"
+              className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
             >
               <option value="auto">Auto-detect</option>
               <option value="en">English</option>
@@ -811,7 +811,7 @@ export default function SettingsPanel() {
               type="checkbox"
               checked={autoDetectLanguage}
               onChange={e => setAutoDetect(e.target.checked)}
-              className="w-4 h-4 rounded border-slate-700 bg-slate-800 text-primary-600 focus:ring-primary-600 focus:ring-offset-0"
+              className="w-4 h-4 rounded border-slate-700 bg-slate-800 text-primary-400 focus:ring-primary-500 focus:ring-offset-0"
             />
             <span className="text-sm">Auto-detect language per recording</span>
           </label>
@@ -824,7 +824,7 @@ export default function SettingsPanel() {
             <select
               value={theme}
               onChange={e => setTheme(e.target.value as any)}
-              className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-600"
+              className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
             >
               <option value="system">System</option>
               <option value="dark">Dark</option>
@@ -837,7 +837,7 @@ export default function SettingsPanel() {
         <button
           onClick={handleSave}
           className={`w-full py-3 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 ${
-            saved ? 'bg-green-600 text-white' : 'bg-primary-600 hover:bg-primary-700 text-white'
+            saved ? 'bg-green-600 text-white' : 'bg-primary-500 hover:bg-primary-600 text-white'
           }`}
         >
           {saved ? <><CheckCircle2 size={18} /> Saved!</> : <><Save size={18} /> Save Settings</>}

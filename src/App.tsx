@@ -7,22 +7,29 @@ import EnhancedCalendarView from './components/EnhancedCalendarView'
 import Dashboard from './components/Dashboard'
 import { useMeetingStore } from './stores/meetingStore'
 import { useSettingsStore } from './stores/settingsStore'
+import { useAudioStore } from './stores/audioStore'
 
 type View = 'home' | 'capture' | 'meeting' | 'calendar' | 'settings'
 
+const NAV = [
+  { id: 'home'    as const, icon: Home,     label: 'Home'     },
+  { id: 'capture' as const, icon: Mic,      label: 'Record'   },
+  { id: 'meeting' as const, icon: FileText,  label: 'Meetings' },
+  { id: 'calendar'as const, icon: Calendar, label: 'Calendar' },
+]
+
 function App() {
   const [currentView, setCurrentView] = useState<View>('home')
-  // Track previous view so calendar → meeting navigation only fires when meeting is opened FROM calendar
   const prevViewRef = useRef<View>('home')
   const { currentMeeting, setMeetings, setCurrentMeeting } = useMeetingStore()
   const { theme, setTheme, setDefaultLanguage, setAutoDetect } = useSettingsStore()
+  const { isCapturing } = useAudioStore()
 
   useEffect(() => {
     loadMeetings()
     loadPersistedSettings()
   }, [])
 
-  // Load persisted theme/language into Zustand store so they apply on every startup
   const loadPersistedSettings = async () => {
     try {
       const [savedTheme, savedLang, savedAutoDetect] = await Promise.all([
@@ -38,44 +45,31 @@ function App() {
     }
   }
 
-  // Apply theme to DOM + listen for OS theme changes
   useEffect(() => {
     const root = document.documentElement
-    const applyTheme = (t: string) => {
-      if (t === 'light') {
-        root.classList.remove('dark'); root.classList.add('light')
-      } else if (t === 'dark') {
-        root.classList.remove('light'); root.classList.add('dark')
-      } else {
+    const apply = (t: string) => {
+      if (t === 'light') { root.classList.remove('dark'); root.classList.add('light') }
+      else if (t === 'dark') { root.classList.remove('light'); root.classList.add('dark') }
+      else {
         const dark = window.matchMedia('(prefers-color-scheme: dark)').matches
-        root.classList.toggle('dark', dark)
-        root.classList.toggle('light', !dark)
+        root.classList.toggle('dark', dark); root.classList.toggle('light', !dark)
       }
     }
-    applyTheme(theme)
-
+    apply(theme)
     if (theme === 'system') {
       const mq = window.matchMedia('(prefers-color-scheme: dark)')
-      const handler = () => applyTheme('system')
-      mq.addEventListener('change', handler)
-      return () => mq.removeEventListener('change', handler)
+      const h = () => apply('system')
+      mq.addEventListener('change', h)
+      return () => mq.removeEventListener('change', h)
     }
   }, [theme])
 
-  // Navigate to meeting detail when a meeting is opened from the calendar.
-  // Only fire when the user is currently on the calendar view — not on every meeting selection.
   useEffect(() => {
-    if (currentMeeting && prevViewRef.current === 'calendar') {
-      setCurrentView('meeting')
-    }
+    if (currentMeeting && prevViewRef.current === 'calendar') setCurrentView('meeting')
   }, [currentMeeting])
 
-  // Track view changes
-  useEffect(() => {
-    prevViewRef.current = currentView
-  }, [currentView])
+  useEffect(() => { prevViewRef.current = currentView }, [currentView])
 
-  // Navigate to capture view when global shortcut fires (CaptureView handles the actual toggle)
   useEffect(() => {
     const onShortcut = () => setCurrentView('capture')
     window.electron.ipcRenderer.on('shortcut:toggle-recording', onShortcut)
@@ -83,55 +77,74 @@ function App() {
   }, [])
 
   const loadMeetings = async () => {
-    try {
-      const allMeetings = await window.api.meetings.getAll()
-      setMeetings(allMeetings)
-    } catch (err) {
-      console.error('Failed to load meetings:', err)
-    }
+    try { setMeetings(await window.api.meetings.getAll()) }
+    catch (err) { console.error('Failed to load meetings:', err) }
   }
 
-  const navBtn = (view: View, icon: React.ReactNode, title: string, onClick?: () => void) => (
-    <button
-      onClick={() => { onClick?.(); setCurrentView(view) }}
-      className={`p-3 rounded-lg transition-colors ${
-        currentView === view
-          ? 'bg-primary-600 text-white'
-          : 'text-slate-400 hover:bg-slate-800 hover:text-white'
-      }`}
-      title={title}
-    >
-      {icon}
-    </button>
-  )
-
   return (
-    <div className="flex h-screen bg-slate-950 text-white">
-      {/* Sidebar */}
-      <div className="w-16 bg-slate-900 border-r border-slate-800 flex flex-col items-center py-4 space-y-4">
-        {navBtn('home',     <Home size={24} />,     'Home')}
-        {navBtn('capture',  <Mic size={24} />,      'Record ⌘⌥R')}
-        {navBtn('meeting',  <FileText size={24} />, 'Meetings', () => setCurrentMeeting(undefined))}
-        {navBtn('calendar', <Calendar size={24} />, 'Calendar')}
+    <div className="flex h-screen text-slate-100" style={{ background: '#07080f' }}>
+
+      {/* Sidebar — narrow rail with icon + label on active */}
+      <nav
+        className="flex flex-col items-center py-5 gap-1 border-r"
+        style={{ width: 60, background: '#0e1016', borderColor: '#1c2030' }}
+      >
+        {NAV.map(({ id, icon: Icon, label }) => {
+          const active = currentView === id
+          const isRec  = id === 'capture' && isCapturing
+
+          return (
+            <button
+              key={id}
+              onClick={() => {
+                if (id === 'meeting') setCurrentMeeting(undefined)
+                setCurrentView(id)
+              }}
+              title={id === 'capture' ? 'Record  ⌘⌥R' : label}
+              className="relative flex flex-col items-center gap-0.5 w-11 py-2 rounded-lg transition-all"
+              style={{
+                color: active ? '#818cf8' : '#475569',
+                background: active ? 'rgba(99,102,241,0.1)' : 'transparent',
+              }}
+            >
+              {/* Recording alive dot */}
+              {isRec && (
+                <span
+                  className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full rec-pulse"
+                  style={{ background: '#f97316' }}
+                />
+              )}
+              <Icon size={18} strokeWidth={active ? 2 : 1.5} />
+              <span style={{ fontSize: '0.58rem', letterSpacing: '0.04em', opacity: active ? 1 : 0.7 }}>
+                {label}
+              </span>
+            </button>
+          )
+        })}
+
         <div className="flex-1" />
-        {navBtn('settings', <Settings size={24} />, 'Settings')}
-      </div>
 
-      {/* Main Content */}
+        {/* Settings */}
+        <button
+          onClick={() => setCurrentView('settings')}
+          title="Settings"
+          className="flex flex-col items-center gap-0.5 w-11 py-2 rounded-lg transition-all"
+          style={{
+            color: currentView === 'settings' ? '#818cf8' : '#475569',
+            background: currentView === 'settings' ? 'rgba(99,102,241,0.1)' : 'transparent',
+          }}
+        >
+          <Settings size={18} strokeWidth={currentView === 'settings' ? 2 : 1.5} />
+          <span style={{ fontSize: '0.58rem', letterSpacing: '0.04em', opacity: 0.7 }}>Settings</span>
+        </button>
+      </nav>
+
+      {/* Main */}
       <div className="flex-1 overflow-hidden">
-        {currentView === 'home' && (
-          <Dashboard
-            onStartRecording={() => setCurrentView('capture')}
-            onOpenMeeting={() => setCurrentView('meeting')}
-          />
-        )}
-
-        {currentView === 'capture' && <CaptureView onViewMeeting={() => setCurrentView('meeting')} />}
-
-        {currentView === 'meeting' && <MeetingList />}
-
+        {currentView === 'home'     && <Dashboard onStartRecording={() => setCurrentView('capture')} onOpenMeeting={() => setCurrentView('meeting')} />}
+        {currentView === 'capture'  && <CaptureView onViewMeeting={() => setCurrentView('meeting')} />}
+        {currentView === 'meeting'  && <MeetingList />}
         {currentView === 'calendar' && <EnhancedCalendarView />}
-
         {currentView === 'settings' && <SettingsPanel />}
       </div>
     </div>
