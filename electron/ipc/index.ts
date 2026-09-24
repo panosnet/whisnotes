@@ -10,6 +10,7 @@ import { registerTagHandlers } from './tags.js'
 import { registerSystemInfoHandlers } from './system-info.js'
 import { registerModelHandlers } from './models.js'
 import { registerExportHandlers } from './export.js'
+import { registerVoiceHandlers } from './voice.js'
 
 export function registerIPCHandlers() {
   registerAudioHandlers()
@@ -23,4 +24,5 @@ export function registerIPCHandlers() {
   registerSystemInfoHandlers()
   registerModelHandlers()
   registerExportHandlers()
+  registerVoiceHandlers()
 }

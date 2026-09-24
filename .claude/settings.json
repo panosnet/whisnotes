@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc --noEmit*)",
+      "Bash(npx tsc --project tsconfig.node.json*)",
+      "Bash(npx tsc --project /Users/panos/whisnotes/tsconfig.node.json*)"
+    ]
+  }
+}

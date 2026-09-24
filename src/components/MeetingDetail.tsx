@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { ArrowLeft, Sparkles, Download, Languages, Clock, MapPin, Users, Star, Trash2, FileText, Pencil, Check, X as XIcon, Volume2 } from 'lucide-react'
+import { ArrowLeft, Sparkles, Download, Languages, Clock, MapPin, Users, Star, Trash2, FileText, Pencil, Check, X as XIcon, Volume2, Wand2 } from 'lucide-react'
 import { useMeetingStore } from '../stores/meetingStore'
 import NotesPanel from './NotesPanel'
 import TagsPanel from './TagsPanel'
@@ -23,6 +23,9 @@ export default function MeetingDetail({ meeting, onBack }: MeetingDetailProps) {
   const [exportError, setExportError] = useState<string | null>(null)
   const [exportOpen, setExportOpen] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
+  const [cloneModal, setCloneModal] = useState(false)
+  const [cloneName, setCloneName] = useState('')
+  const [cloning, setCloning] = useState(false)
   const [recordingPath, setRecordingPath] = useState<string | null>(null)
   const [currentAudioTime, setCurrentAudioTime] = useState(0)
   const [speakerNames, setSpeakerNames] = useState<Record<number, string>>({})
@@ -93,6 +96,19 @@ export default function MeetingDetail({ meeting, onBack }: MeetingDetailProps) {
       setDeleteError(err.message || 'Failed to delete meeting')
       setShowDeleteConfirm(false)
     }
+  }
+
+  const handleCloneVoice = async () => {
+    if (!cloneName.trim()) return
+    setCloning(true)
+    try {
+      const recPath = await window.api.audio.getRecordingPath(meeting.id)
+      if (!recPath) { setDeleteError('This meeting has no audio recording.'); setCloneModal(false); return }
+      await window.api.voice.createProfile(cloneName.trim(), recPath, meeting.id)
+      setCloneModal(false); setCloneName('')
+    } catch (err: any) {
+      setDeleteError(err.message || 'Voice cloning failed')
+    } finally { setCloning(false) }
   }
 
   const fmtTs = (secs: number) => {
@@ -245,6 +261,16 @@ export default function MeetingDetail({ meeting, onBack }: MeetingDetailProps) {
               <Star size={20} fill={isStarred ? 'currentColor' : 'none'} />
             </button>
             <button
+              onClick={() => { setCloneName(meeting.title); setCloneModal(true) }}
+              className="p-2 rounded-lg transition-colors"
+              style={{ color: '#475569' }}
+              title="Clone voice from this recording"
+              onMouseEnter={e => (e.currentTarget.style.color = '#818cf8')}
+              onMouseLeave={e => (e.currentTarget.style.color = '#475569')}
+            >
+              <Wand2 size={20} />
+            </button>
+            <button
               onClick={() => setShowDeleteConfirm(true)}
               className="p-2 rounded-lg text-slate-500 hover:text-red-400 hover:bg-ink-800 transition-colors"
               title="Delete recording"
@@ -252,6 +278,36 @@ export default function MeetingDetail({ meeting, onBack }: MeetingDetailProps) {
               <Trash2 size={20} />
             </button>
           </div>
+
+          {/* Clone voice modal */}
+          {cloneModal && (
+            <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+              <div className="rounded-2xl p-6 space-y-4 max-w-sm w-full mx-4" style={{ background: '#0e1016', border: '1px solid #1c2030' }}>
+                <div className="flex items-center gap-2" style={{ color: '#818cf8' }}>
+                  <Wand2 size={18} />
+                  <span className="font-semibold">Clone Voice from Recording</span>
+                </div>
+                <p style={{ fontSize: '0.78rem', color: '#64748b' }}>
+                  Creates a voice profile from the audio in this meeting. 30+ seconds of clear speech gives best results.
+                </p>
+                <input
+                  value={cloneName}
+                  onChange={e => setCloneName(e.target.value)}
+                  placeholder="Voice profile name"
+                  className="w-full px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  style={{ background: '#141720', border: '1px solid #1c2030', color: '#e2e8f0' }}
+                  autoFocus
+                  onKeyDown={e => { if (e.key === 'Enter') handleCloneVoice() }}
+                />
+                <div className="flex gap-2">
+                  <button onClick={() => setCloneModal(false)} className="flex-1 py-2 rounded-lg text-sm" style={{ background: '#141720', color: '#64748b' }}>Cancel</button>
+                  <button onClick={handleCloneVoice} disabled={cloning} className="flex-1 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2 disabled:opacity-50" style={{ background: '#4f46e5', color: 'white' }}>
+                    {cloning ? 'Cloning…' : '✦ Clone Voice'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="flex items-start justify-between">

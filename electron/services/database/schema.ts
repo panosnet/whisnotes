@@ -125,6 +125,33 @@ export async function initializeDatabase() {
     CREATE INDEX IF NOT EXISTS idx_notes_segment ON notes(segment_id);
     CREATE INDEX IF NOT EXISTS idx_calendar_start_time ON calendar_events(start_time);
     CREATE INDEX IF NOT EXISTS idx_calendar_meeting ON calendar_events(meeting_id);
+
+    -- Voice cloning: profiles and synthesis history
+    CREATE TABLE IF NOT EXISTS voice_profiles (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      sample_path TEXT,
+      embedding_path TEXT,
+      provider TEXT NOT NULL DEFAULT 'local',
+      elevenlabs_voice_id TEXT,
+      duration_secs REAL,
+      source_meeting_id TEXT REFERENCES meetings(id) ON DELETE SET NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS voice_synthesis_jobs (
+      id TEXT PRIMARY KEY,
+      profile_id TEXT REFERENCES voice_profiles(id) ON DELETE CASCADE,
+      input_text TEXT NOT NULL,
+      output_path TEXT,
+      status TEXT NOT NULL DEFAULT 'pending',
+      duration_secs REAL,
+      error TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_voice_jobs_profile ON voice_synthesis_jobs(profile_id);
   `)
 
   // FTS5 full-text search across transcript segments

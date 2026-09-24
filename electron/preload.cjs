@@ -80,6 +80,20 @@ contextBridge.exposeInMainWorld('api', {
     delete: (id) => ipcRenderer.invoke('tag:delete', id),
   },
 
+  // Voice cloning
+  voice: {
+    listProfiles:     ()                             => ipcRenderer.invoke('voice:list-profiles'),
+    createProfile:    (name, samplePath, meetingId)  => ipcRenderer.invoke('voice:create-profile', name, samplePath, meetingId),
+    deleteProfile:    (id)                           => ipcRenderer.invoke('voice:delete-profile', id),
+    synthesize:       (text, voiceId)                => ipcRenderer.invoke('voice:synthesize', text, voiceId),
+    saveSynthesis:    (sourcePath)                   => ipcRenderer.invoke('voice:save-synthesis', sourcePath),
+    realtimeStart:    (voiceId)                      => ipcRenderer.invoke('voice:realtime-start', voiceId),
+    realtimeChunk:    (pcmBase64)                    => ipcRenderer.invoke('voice:realtime-chunk', pcmBase64),
+    realtimeStop:     ()                             => ipcRenderer.invoke('voice:realtime-stop'),
+    checkBlackhole:   ()                             => ipcRenderer.invoke('voice:check-blackhole'),
+    openBlackholeUrl: ()                             => ipcRenderer.invoke('voice:open-blackhole-url'),
+  },
+
   // Generic invoke (system-info, models, etc.)
   invoke: (channel, ...args) => ipcRenderer.invoke(channel, ...args),
 })
@@ -89,6 +103,7 @@ const ALLOWED_PUSH_CHANNELS = new Set([
   'models:download-progress', 'models:download-done', 'models:download-error',
   'audio:volume', 'transcript:segment', 'transcript:error',
   'shortcut:toggle-recording',
+  'voice:clone-progress', 'voice:synthesis-progress', 'voice:realtime-chunk',
 ])
 
 contextBridge.exposeInMainWorld('electron', {

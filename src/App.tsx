@@ -1,21 +1,23 @@
 import { useState, useEffect, useRef } from 'react'
-import { Mic, Settings, FileText, Home, Calendar } from 'lucide-react'
+import { Mic, Settings, FileText, Home, Calendar, Wand2 } from 'lucide-react'
 import CaptureView from './components/CaptureView'
 import MeetingList from './components/MeetingList'
 import SettingsPanel from './components/SettingsPanel'
 import EnhancedCalendarView from './components/EnhancedCalendarView'
 import Dashboard from './components/Dashboard'
+import VoiceStudio from './components/VoiceStudio'
 import { useMeetingStore } from './stores/meetingStore'
 import { useSettingsStore } from './stores/settingsStore'
 import { useAudioStore } from './stores/audioStore'
 
-type View = 'home' | 'capture' | 'meeting' | 'calendar' | 'settings'
+type View = 'home' | 'capture' | 'meeting' | 'calendar' | 'voice' | 'settings'
 
 const NAV = [
-  { id: 'home'    as const, icon: Home,     label: 'Home'     },
-  { id: 'capture' as const, icon: Mic,      label: 'Record'   },
-  { id: 'meeting' as const, icon: FileText,  label: 'Meetings' },
-  { id: 'calendar'as const, icon: Calendar, label: 'Calendar' },
+  { id: 'home'     as const, icon: Home,     label: 'Home'     },
+  { id: 'capture'  as const, icon: Mic,      label: 'Record'   },
+  { id: 'meeting'  as const, icon: FileText,  label: 'Meetings' },
+  { id: 'calendar' as const, icon: Calendar, label: 'Calendar' },
+  { id: 'voice'    as const, icon: Wand2,    label: 'Voice'    },
 ]
 
 function App() {
@@ -145,6 +147,7 @@ function App() {
         {currentView === 'capture'  && <CaptureView onViewMeeting={() => setCurrentView('meeting')} />}
         {currentView === 'meeting'  && <MeetingList />}
         {currentView === 'calendar' && <EnhancedCalendarView />}
+        {currentView === 'voice'    && <VoiceStudio />}
         {currentView === 'settings' && <SettingsPanel />}
       </div>
     </div>

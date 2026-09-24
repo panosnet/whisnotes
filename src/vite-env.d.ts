@@ -10,6 +10,7 @@ declare global {
         onAudioData: (callback: (data: ArrayBuffer) => void) => void
         getRecordingPath: (meetingId: string) => Promise<string | null>
         onVolumeLevel: (callback: (level: number) => void) => void
+    getRecordingPath: (meetingId: string) => Promise<string | null>
       }
       transcription: {
         onSegment: (callback: (segment: any) => void) => void
@@ -62,6 +63,18 @@ declare global {
         addToMeeting: (meetingId: string, tagName: string, color?: string) => Promise<any>
         removeFromMeeting: (meetingId: string, tagId: string) => Promise<any>
         delete: (id: string) => Promise<void>
+      }
+      voice: {
+        listProfiles: () => Promise<any[]>
+        createProfile: (name: string, samplePath: string, meetingId?: string) => Promise<any>
+        deleteProfile: (id: string) => Promise<boolean>
+        synthesize: (text: string, voiceId: string) => Promise<{ path: string; durationSecs: number }>
+        saveSynthesis: (sourcePath: string) => Promise<string | null>
+        realtimeStart: (voiceId: string) => Promise<{ success: boolean }>
+        realtimeChunk: (pcmBase64: string) => Promise<{ audiob64: string }>
+        realtimeStop: () => Promise<{ success: boolean }>
+        checkBlackhole: () => Promise<{ installed: boolean; entries: string[] }>
+        openBlackholeUrl: () => Promise<void>
       }
       invoke: (channel: string, ...args: any[]) => Promise<any>
     }
