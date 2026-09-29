@@ -203,5 +203,18 @@ export async function initializeDatabase() {
     console.log('[FTS5] Not available, full-text search disabled:', (e as Error).message)
   }
 
+  // Safe migrations — add columns to existing tables without recreating them
+  const migrations = [
+    // Audio playback support
+    "ALTER TABLE meetings ADD COLUMN recording_path TEXT",
+    // Speaker recognition
+    "ALTER TABLE transcript_segments ADD COLUMN speaker_name TEXT",
+    // Voice profile source tracking
+    "ALTER TABLE voice_profiles ADD COLUMN sample_count INTEGER DEFAULT 0",
+  ]
+  for (const sql of migrations) {
+    try { database.exec(sql) } catch { /* column already exists — safe to ignore */ }
+  }
+
   console.log('Database initialized successfully')
 }
