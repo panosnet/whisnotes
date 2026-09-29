@@ -26,7 +26,7 @@ export default function MeetingDetail({ meeting, onBack }: MeetingDetailProps) {
   const [cloneModal, setCloneModal] = useState(false)
   const [cloneName, setCloneName] = useState('')
   const [cloning, setCloning] = useState(false)
-  const [recordingPath, setRecordingPath] = useState<string | null>(null)
+  const [recordingPath, setRecordingPath] = useState<string | null>(null) // blob: URL
   const [currentAudioTime, setCurrentAudioTime] = useState(0)
   const [speakerNames, setSpeakerNames] = useState<Record<number, string>>({})
   const audioRef = useRef<HTMLAudioElement>(null)
@@ -56,10 +56,16 @@ export default function MeetingDetail({ meeting, onBack }: MeetingDetailProps) {
       console.error('Failed to load analysis:', err)
     }
 
-    // Load recording path for audio playback
+    // Load recording for audio playback as blob URL
+    // (file:// is blocked from HTTP dev server origin; blob URL works universally)
     try {
-      const path = await window.api.audio.getRecordingPath(meeting.id)
-      setRecordingPath(path || null)
+      const buffer = await window.api.invoke('audio:read-recording', meeting.id)
+      if (buffer) {
+        // Revoke previous blob URL to avoid memory leaks
+        setRecordingPath(prev => { if (prev?.startsWith('blob:')) URL.revokeObjectURL(prev); return null })
+        const blob = new Blob([new Uint8Array(buffer)], { type: 'audio/wav' })
+        setRecordingPath(URL.createObjectURL(blob))
+      }
     } catch { /* no recording */ }
   }
 
@@ -434,7 +440,7 @@ export default function MeetingDetail({ meeting, onBack }: MeetingDetailProps) {
               <audio
                 ref={audioRef}
                 controls
-                src={`file://${recordingPath}`}
+                src={recordingPath}
                 className="w-full"
                 onTimeUpdate={() => setCurrentAudioTime(audioRef.current?.currentTime || 0)}
                 style={{ accentColor: '#6366f1' }}

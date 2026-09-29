@@ -109,11 +109,13 @@ export default function CaptureView({ onViewMeeting }: { onViewMeeting?: () => v
       setJustStoppedMeetingId(null)
       clearSegments()
 
-      sessionStartRef.current = Date.now()
+      const recordingStart = Date.now()
+      sessionStartRef.current = recordingStart
       setElapsedSeconds(0)
+      // Use a captured local to avoid any ref-vs-closure ambiguity
       timerRef.current = setInterval(() => {
-        setElapsedSeconds(Math.floor((Date.now() - sessionStartRef.current) / 1000))
-      }, 1000)
+        setElapsedSeconds(Math.floor((Date.now() - recordingStart) / 1000))
+      }, 500) // 500ms for snappier updates
 
       // Pass language so Whisper transcribes in the right language
       await window.api.audio.startCapture(selectedDeviceId, meeting.id, language)

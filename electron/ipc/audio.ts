@@ -50,4 +50,13 @@ export function registerAudioHandlers() {
     const filePath = join(app.getPath('userData'), 'recordings', `${meetingId}.wav`)
     return existsSync(filePath) ? filePath : null
   })
+
+  // Read recording bytes so the renderer can build a blob URL
+  // (file:// URLs are blocked from http://localhost:5173 in dev mode)
+  ipcMain.handle('audio:read-recording', async (_event, meetingId: string) => {
+    const { readFileSync } = await import('fs')
+    const filePath = join(app.getPath('userData'), 'recordings', `${meetingId}.wav`)
+    if (!existsSync(filePath)) return null
+    try { return readFileSync(filePath) } catch { return null }
+  })
 }
