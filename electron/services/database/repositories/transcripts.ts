@@ -45,6 +45,14 @@ export class TranscriptRepository {
     return rows.map(this.mapRow)
   }
 
+  updateSpeakerName(id: string, speakerName: string, speakerId?: string): boolean {
+    const fields = ['speaker_name = ?']
+    const values: any[] = [speakerName]
+    if (speakerId !== undefined) { fields.push('speaker_id = ?'); values.push(speakerId) }
+    values.push(id)
+    return this.db.prepare(`UPDATE transcript_segments SET ${fields.join(', ')} WHERE id = ?`).run(...values).changes > 0
+  }
+
   updateText(id: string, text: string): boolean {
     const stmt = this.db.prepare('UPDATE transcript_segments SET text = ? WHERE id = ?')
     const result = stmt.run(text, id)

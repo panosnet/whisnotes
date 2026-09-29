@@ -126,6 +126,30 @@ export async function initializeDatabase() {
     CREATE INDEX IF NOT EXISTS idx_calendar_start_time ON calendar_events(start_time);
     CREATE INDEX IF NOT EXISTS idx_calendar_meeting ON calendar_events(meeting_id);
 
+    -- Speaker recognition: persistent people database
+    CREATE TABLE IF NOT EXISTS speaker_profiles (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      description TEXT,
+      photo_path TEXT,
+      sample_count INTEGER DEFAULT 0,
+      last_seen_at DATETIME,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS speaker_embeddings (
+      id TEXT PRIMARY KEY,
+      speaker_id TEXT NOT NULL REFERENCES speaker_profiles(id) ON DELETE CASCADE,
+      audio_sample_path TEXT NOT NULL,
+      embedding_path TEXT NOT NULL,
+      source_meeting_id TEXT REFERENCES meetings(id) ON DELETE SET NULL,
+      confirmed INTEGER DEFAULT 1,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_embeddings_speaker ON speaker_embeddings(speaker_id);
+
     -- Voice cloning: profiles and synthesis history
     CREATE TABLE IF NOT EXISTS voice_profiles (
       id TEXT PRIMARY KEY,

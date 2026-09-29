@@ -80,6 +80,19 @@ contextBridge.exposeInMainWorld('api', {
     delete: (id) => ipcRenderer.invoke('tag:delete', id),
   },
 
+  // Speaker recognition (persistent people database)
+  speakers: {
+    list:             ()                                    => ipcRenderer.invoke('speakers:list'),
+    create:           (name, description)                   => ipcRenderer.invoke('speakers:create', name, description),
+    update:           (id, data)                            => ipcRenderer.invoke('speakers:update', id, data),
+    delete:           (id)                                  => ipcRenderer.invoke('speakers:delete', id),
+    registerSample:   (speakerId, audioPath, meetingId)     => ipcRenderer.invoke('speakers:register-sample', speakerId, audioPath, meetingId),
+    getEmbeddings:    (speakerId)                           => ipcRenderer.invoke('speakers:get-embeddings', speakerId),
+    identify:         (audioPath)                           => ipcRenderer.invoke('speakers:identify', audioPath),
+    identifyMeeting:  (meetingId, recordingPath)            => ipcRenderer.invoke('speakers:identify-meeting', meetingId, recordingPath),
+    assignLabels:     (meetingId, speakerMap)               => ipcRenderer.invoke('speakers:assign-labels', meetingId, speakerMap),
+  },
+
   // Voice cloning
   voice: {
     listProfiles:     ()                             => ipcRenderer.invoke('voice:list-profiles'),
@@ -104,6 +117,7 @@ const ALLOWED_PUSH_CHANNELS = new Set([
   'audio:volume', 'transcript:segment', 'transcript:error',
   'shortcut:toggle-recording',
   'voice:clone-progress', 'voice:synthesis-progress', 'voice:realtime-chunk',
+  'speakers:progress',
 ])
 
 contextBridge.exposeInMainWorld('electron', {

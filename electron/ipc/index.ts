@@ -11,6 +11,7 @@ import { registerSystemInfoHandlers } from './system-info.js'
 import { registerModelHandlers } from './models.js'
 import { registerExportHandlers } from './export.js'
 import { registerVoiceHandlers } from './voice.js'
+import { registerSpeakerHandlers } from './speakers.js'
 
 export function registerIPCHandlers() {
   registerAudioHandlers()
@@ -25,4 +26,5 @@ export function registerIPCHandlers() {
   registerModelHandlers()
   registerExportHandlers()
   registerVoiceHandlers()
+  registerSpeakerHandlers()
 }

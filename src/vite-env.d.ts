@@ -64,6 +64,17 @@ declare global {
         removeFromMeeting: (meetingId: string, tagId: string) => Promise<any>
         delete: (id: string) => Promise<void>
       }
+      speakers: {
+        list: () => Promise<any[]>
+        create: (name: string, description?: string) => Promise<any>
+        update: (id: string, data: any) => Promise<boolean>
+        delete: (id: string) => Promise<boolean>
+        registerSample: (speakerId: string, audioPath: string, meetingId?: string) => Promise<any>
+        getEmbeddings: (speakerId: string) => Promise<any[]>
+        identify: (audioPath: string) => Promise<any>
+        identifyMeeting: (meetingId: string, recordingPath: string) => Promise<any>
+        assignLabels: (meetingId: string, speakerMap: Record<string, string | null>) => Promise<any>
+      }
       voice: {
         listProfiles: () => Promise<any[]>
         createProfile: (name: string, samplePath: string, meetingId?: string) => Promise<any>

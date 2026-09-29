@@ -1,16 +1,17 @@
 import { useState, useEffect, useRef } from 'react'
-import { Mic, Settings, FileText, Home, Calendar, Wand2 } from 'lucide-react'
+import { Mic, Settings, FileText, Home, Calendar, Wand2, Users } from 'lucide-react'
 import CaptureView from './components/CaptureView'
 import MeetingList from './components/MeetingList'
 import SettingsPanel from './components/SettingsPanel'
 import EnhancedCalendarView from './components/EnhancedCalendarView'
 import Dashboard from './components/Dashboard'
 import VoiceStudio from './components/VoiceStudio'
+import PeopleDirectory from './components/PeopleDirectory'
 import { useMeetingStore } from './stores/meetingStore'
 import { useSettingsStore } from './stores/settingsStore'
 import { useAudioStore } from './stores/audioStore'
 
-type View = 'home' | 'capture' | 'meeting' | 'calendar' | 'voice' | 'settings'
+type View = 'home' | 'capture' | 'meeting' | 'calendar' | 'voice' | 'people' | 'settings'
 
 const NAV = [
   { id: 'home'     as const, icon: Home,     label: 'Home'     },
@@ -18,6 +19,7 @@ const NAV = [
   { id: 'meeting'  as const, icon: FileText,  label: 'Meetings' },
   { id: 'calendar' as const, icon: Calendar, label: 'Calendar' },
   { id: 'voice'    as const, icon: Wand2,    label: 'Voice'    },
+  { id: 'people'   as const, icon: Users,    label: 'People'   },
 ]
 
 function App() {
@@ -148,6 +150,7 @@ function App() {
         {currentView === 'meeting'  && <MeetingList />}
         {currentView === 'calendar' && <EnhancedCalendarView />}
         {currentView === 'voice'    && <VoiceStudio />}
+        {currentView === 'people'   && <PeopleDirectory />}
         {currentView === 'settings' && <SettingsPanel />}
       </div>
     </div>
