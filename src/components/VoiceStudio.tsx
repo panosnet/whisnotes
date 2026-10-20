@@ -310,13 +310,28 @@ function TTSTab({ profiles }: { profiles: VoiceProfile[] }) {
   const [voiceId, setVoiceId] = useState('')
   const [text, setText] = useState('')
   const [synthesising, setSynthesising] = useState(false)
-  const [audioPath, setAudioPath] = useState<string | null>(null)
+  const [blobUrl, setBlobUrl] = useState<string | null>(null)   // blob URL — works from any origin
+  const [rawPath, setRawPath] = useState<string | null>(null)   // file path for saving
   const [error, setError] = useState<string | null>(null)
   const audioRef = useRef<HTMLAudioElement>(null)
 
+  // Clean up blob URL on unmount
+  useEffect(() => () => { if (blobUrl) URL.revokeObjectURL(blobUrl) }, [blobUrl])
+
   useEffect(() => {
     const onProgress = (_: any, data: { status: string; path?: string }) => {
-      if (data.status === 'done' && data.path) { setAudioPath(data.path); setSynthesising(false) }
+      if (data.status === 'done' && data.path) {
+        setRawPath(data.path)
+        setSynthesising(false)
+        // Load as blob to avoid file:// origin restriction in dev mode
+        window.api.invoke('audio:read-file', data.path).then((buf: any) => {
+          if (buf) {
+            setBlobUrl(prev => { if (prev) URL.revokeObjectURL(prev); return null })
+            const blob = new Blob([new Uint8Array(buf)], { type: 'audio/wav' })
+            setBlobUrl(URL.createObjectURL(blob))
+          }
+        }).catch(() => setRawPath(data.path!))
+      }
     }
     window.electron.ipcRenderer.on('voice:synthesis-progress', onProgress)
     return () => window.electron.ipcRenderer.removeListener('voice:synthesis-progress', onProgress)
@@ -325,7 +340,7 @@ function TTSTab({ profiles }: { profiles: VoiceProfile[] }) {
   const handleSynthesize = async () => {
     if (!voiceId) { setError('Select a voice'); return }
     if (!text.trim()) { setError('Enter some text'); return }
-    setError(null); setSynthesising(true); setAudioPath(null)
+    setError(null); setSynthesising(true); setBlobUrl(null); setRawPath(null)
     try {
       await window.api.voice.synthesize(text.trim(), voiceId)
     } catch (err: any) {
@@ -334,9 +349,8 @@ function TTSTab({ profiles }: { profiles: VoiceProfile[] }) {
   }
 
   const handleSave = async () => {
-    if (!audioPath) return
-    const saved = await window.api.voice.saveSynthesis(audioPath)
-    if (saved) console.log('Saved to', saved)
+    if (!rawPath) return
+    await window.api.voice.saveSynthesis(rawPath)
   }
 
   if (profiles.length === 0) return (
@@ -392,7 +406,7 @@ function TTSTab({ profiles }: { profiles: VoiceProfile[] }) {
           {synthesising ? <><Loader2 size={14} className="animate-spin" /> Synthesising…</> : <><Play size={14} /> Synthesise</>}
         </button>
 
-        {audioPath && (
+        {rawPath && (
           <button
             onClick={handleSave}
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm transition-all"
@@ -403,10 +417,10 @@ function TTSTab({ profiles }: { profiles: VoiceProfile[] }) {
         )}
       </div>
 
-      {audioPath && (
+      {blobUrl && (
         <div className="rounded-xl p-4" style={{ background: '#0e1016', border: '1px solid #1c2030' }}>
           <div style={{ fontSize: '0.72rem', color: '#475569', marginBottom: 8 }}>Generated audio</div>
-          <audio ref={audioRef} controls src={`file://${audioPath}`} className="w-full" />
+          <audio ref={audioRef} controls src={blobUrl} className="w-full" autoPlay />
         </div>
       )}
     </div>

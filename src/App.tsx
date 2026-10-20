@@ -7,6 +7,7 @@ import EnhancedCalendarView from './components/EnhancedCalendarView'
 import Dashboard from './components/Dashboard'
 import VoiceStudio from './components/VoiceStudio'
 import PeopleDirectory from './components/PeopleDirectory'
+import { ErrorBoundary } from './components/ErrorBoundary'
 import { useMeetingStore } from './stores/meetingStore'
 import { useSettingsStore } from './stores/settingsStore'
 import { useAudioStore } from './stores/audioStore'
@@ -145,13 +146,27 @@ function App() {
 
       {/* Main */}
       <div className="flex-1 overflow-hidden">
-        {currentView === 'home'     && <Dashboard onStartRecording={() => setCurrentView('capture')} onOpenMeeting={() => setCurrentView('meeting')} />}
-        {currentView === 'capture'  && <CaptureView onViewMeeting={() => setCurrentView('meeting')} />}
-        {currentView === 'meeting'  && <MeetingList />}
-        {currentView === 'calendar' && <EnhancedCalendarView />}
-        {currentView === 'voice'    && <VoiceStudio />}
-        {currentView === 'people'   && <PeopleDirectory />}
-        {currentView === 'settings' && <SettingsPanel />}
+        <ErrorBoundary label="Home">
+          {currentView === 'home'     && <Dashboard onStartRecording={() => setCurrentView('capture')} onOpenMeeting={() => setCurrentView('meeting')} />}
+        </ErrorBoundary>
+        <ErrorBoundary label="Record">
+          {currentView === 'capture'  && <CaptureView onViewMeeting={() => setCurrentView('meeting')} />}
+        </ErrorBoundary>
+        <ErrorBoundary label="Meetings">
+          {currentView === 'meeting'  && <MeetingList />}
+        </ErrorBoundary>
+        <ErrorBoundary label="Calendar">
+          {currentView === 'calendar' && <EnhancedCalendarView />}
+        </ErrorBoundary>
+        <ErrorBoundary label="Voice Studio">
+          {currentView === 'voice'    && <VoiceStudio />}
+        </ErrorBoundary>
+        <ErrorBoundary label="People">
+          {currentView === 'people'   && <PeopleDirectory />}
+        </ErrorBoundary>
+        <ErrorBoundary label="Settings">
+          {currentView === 'settings' && <SettingsPanel />}
+        </ErrorBoundary>
       </div>
     </div>
   )

@@ -636,7 +636,7 @@ export default function SettingsPanel() {
                 <div className={`flex items-center gap-2 text-sm ${ollamaStatus.running ? 'text-green-400' : 'text-amber-400'}`}>
                   {ollamaStatus.running
                     ? <><CheckCircle2 size={14} /> Ollama running — {ollamaStatus.models.length} model{ollamaStatus.models.length !== 1 ? 's' : ''} installed</>
-                    : <><AlertCircle size={14} /> Ollama not detected — <a className="underline cursor-pointer" onClick={() => window.open?.('https://ollama.ai')}>install from ollama.ai</a></>
+                    : <><AlertCircle size={14} /> Ollama not detected — <a className="underline cursor-pointer" onClick={() => window.api.invoke('shell:open-url', 'https://ollama.ai')}>install from ollama.ai</a></>
                   }
                 </div>
               ) : null}
@@ -742,7 +742,7 @@ export default function SettingsPanel() {
 
               <div className="text-xs text-slate-500 border-t border-ink-600 pt-3">
                 Ollama runs models 100% locally. Get it at{' '}
-                <span className="text-primary-400 cursor-pointer" onClick={() => window.open?.('https://ollama.ai')}>ollama.ai</span>
+                <span className="text-primary-400 cursor-pointer" onClick={() => window.api.invoke('shell:open-url', 'https://ollama.ai')}>ollama.ai</span>
               </div>
             </div>
           )}

@@ -30,7 +30,7 @@ export interface TranscriptSegment {
   language: string
   translation?: string
   confidence: number
-  speakerId?: number
+  speakerId?: number | string  // number from WhisperX diarization, UUID string from speaker DB
   createdAt: Date
 }
 

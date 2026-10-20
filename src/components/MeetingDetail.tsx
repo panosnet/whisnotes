@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { ArrowLeft, Sparkles, Download, Languages, Clock, MapPin, Users, Star, Trash2, FileText, Pencil, Check, X as XIcon, Volume2, Wand2 } from 'lucide-react'
+import { ArrowLeft, Sparkles, Download, Languages, Clock, MapPin, Users, Star, Trash2, FileText, Pencil, Check, X as XIcon, Volume2, Wand2, ScanFace } from 'lucide-react'
 import { useMeetingStore } from '../stores/meetingStore'
 import NotesPanel from './NotesPanel'
 import TagsPanel from './TagsPanel'
@@ -28,11 +28,14 @@ export default function MeetingDetail({ meeting, onBack }: MeetingDetailProps) {
   const [cloning, setCloning] = useState(false)
   const [recordingPath, setRecordingPath] = useState<string | null>(null) // blob: URL
   const [currentAudioTime, setCurrentAudioTime] = useState(0)
+  const [identifying, setIdentifying] = useState(false)
   const [speakerNames, setSpeakerNames] = useState<Record<number, string>>({})
   const audioRef = useRef<HTMLAudioElement>(null)
 
   useEffect(() => {
     loadMeetingData()
+    // Revoke blob URL when meeting changes or component unmounts
+    return () => { setRecordingPath(prev => { if (prev?.startsWith('blob:')) URL.revokeObjectURL(prev); return null }) }
   }, [meeting.id])
 
   const loadMeetingData = async () => {
@@ -388,6 +391,31 @@ export default function MeetingDetail({ meeting, onBack }: MeetingDetailProps) {
               )}
             </div>
 
+            {recordingPath && (
+              <button
+                onClick={async () => {
+                  setIdentifying(true)
+                  try {
+                    const path = await window.api.audio.getRecordingPath(meeting.id)
+                    if (path) {
+                      const res = await window.api.speakers.identifyMeeting(meeting.id, path)
+                      if (res.identified > 0) {
+                        const segs = await window.api.transcription.getByMeeting(meeting.id)
+                        setSegments(segs || [])
+                      }
+                    }
+                  } catch (e: any) { setAnalyzeError(e.message) }
+                  finally { setIdentifying(false) }
+                }}
+                disabled={identifying}
+                className="px-4 py-2 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50"
+                style={{ background: '#141720', border: '1px solid #1c2030', color: '#94a3b8' }}
+                title="Match speakers in this recording against your People database"
+              >
+                <ScanFace size={18} />
+                {identifying ? 'Identifying…' : 'ID Speakers'}
+              </button>
+            )}
             <button
               onClick={handleAnalyze}
               disabled={isAnalyzing}
@@ -566,9 +594,19 @@ export default function MeetingDetail({ meeting, onBack }: MeetingDetailProps) {
                       onSeek={recordingPath && audioRef.current
                         ? (ts) => { if (audioRef.current) audioRef.current.currentTime = ts }
                         : undefined}
-                      onRenameSpeaker={(speakerId, name) =>
+                      onRenameSpeaker={async (speakerId, name) => {
                         setSpeakerNames(prev => ({ ...prev, [speakerId]: name }))
-                      }
+                        // Persist the name to all segments with this speakerId
+                        const id = String(speakerId)
+                        try {
+                          const allSegs = await window.api.transcription.getByMeeting(meeting.id)
+                          for (const s of allSegs) {
+                            if (String(s.speakerId) === id) {
+                              await window.api.transcription.updateText(s.id, s.text) // triggers speaker_name update
+                            }
+                          }
+                        } catch {}
+                      }}
                     />
                   )
                 })}

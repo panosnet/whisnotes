@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, globalShortcut, Notification } from 'electron'
+import { app, BrowserWindow, ipcMain, globalShortcut, Notification, shell } from 'electron'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import { initializeDatabase } from './services/database/schema.js'
@@ -111,6 +111,17 @@ if (!gotTheLock) {
     ipcMain.on('internal:new-segment', () => {
       sendToOverlay('overlay:segment')
     })
+
+    // Generic local file reader — returns bytes as Buffer so renderer can build blob URLs
+    // (file:// is blocked from http://localhost:5173 in dev mode)
+    ipcMain.handle('audio:read-file', async (_e, filePath: string) => {
+      const { existsSync, readFileSync } = await import('fs')
+      if (!filePath || !existsSync(filePath)) return null
+      try { return readFileSync(filePath) } catch { return null }
+    })
+
+    // Safe shell URL opener — used by renderer instead of window.open()
+    ipcMain.handle('shell:open-url', (_e, url: string) => shell.openExternal(url))
 
     // Register env-check handler
     const projectRoot = app.isPackaged ? path.dirname(app.getPath('exe')) : path.join(__dirname, '../')

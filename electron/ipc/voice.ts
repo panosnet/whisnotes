@@ -79,11 +79,12 @@ export function registerVoiceHandlers() {
     return { success: true }
   })
 
-  ipcMain.handle('voice:check-blackhole', () => {
-    // Check for BlackHole virtual audio device
+  ipcMain.handle('voice:check-blackhole', async () => {
+    // Check for BlackHole virtual audio device — use import() not require() (ESM)
+    const { readdirSync } = await import('fs')
     const halPath = '/Library/Audio/Plug-Ins/HAL'
     const entries = existsSync(halPath)
-      ? require('fs').readdirSync(halPath).filter((f: string) => f.toLowerCase().includes('blackhole'))
+      ? readdirSync(halPath).filter((f: string) => f.toLowerCase().includes('blackhole'))
       : []
     return { installed: entries.length > 0, entries }
   })

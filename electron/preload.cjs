@@ -18,6 +18,7 @@ contextBridge.exposeInMainWorld('api', {
     translate: (text, targetLang) => ipcRenderer.invoke('transcript:translate', text, targetLang),
     getByMeeting: (meetingId) => ipcRenderer.invoke('transcript:get-by-meeting', meetingId),
     updateText: (id, text) => ipcRenderer.invoke('transcript:update-text', id, text),
+    search: (query) => ipcRenderer.invoke('transcript:search', query),
   },
 
   // Meetings
