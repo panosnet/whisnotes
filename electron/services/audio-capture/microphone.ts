@@ -1,5 +1,9 @@
 import { EventEmitter } from 'events'
 import { createRequire } from 'module'
+import { fileURLToPath } from 'url'
+import { dirname } from 'path'
+
+const _require = createRequire(import.meta.url)
 
 // Ensure Homebrew paths are available inside Electron
 process.env.PATH = [
@@ -32,7 +36,7 @@ export class MicrophoneCapture extends EventEmitter {
     const channels = options.channels || 1
 
     try {
-      const record = require('node-record-lpcm16')
+      const record = _require('node-record-lpcm16')
 
       this.recording = record.record({
         sampleRate,

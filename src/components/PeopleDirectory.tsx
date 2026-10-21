@@ -40,16 +40,16 @@ export default function PeopleDirectory() {
   }
 
   return (
-    <div className="h-full flex flex-col" style={{ background: '#07080f' }}>
-      <div className="border-b px-8 pt-7 pb-5" style={{ borderColor: '#1c2030', background: '#0e1016' }}>
+    <div className="h-full flex flex-col" style={{ background: 'var(--bg-base)' }}>
+      <div className="border-b px-8 pt-7 pb-5" style={{ borderColor: 'var(--border)', background: 'var(--bg-surface)' }}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-lg" style={{ background: 'rgba(99,102,241,0.12)' }}>
               <Users size={20} style={{ color: '#818cf8' }} />
             </div>
             <div>
-              <h1 className="font-semibold text-lg" style={{ color: '#e2e8f0', letterSpacing: '-0.01em' }}>People</h1>
-              <p style={{ fontSize: '0.75rem', color: '#475569' }}>Voice database — recognized automatically in all recordings</p>
+              <h1 className="font-semibold text-lg" style={{ color: 'var(--text)', letterSpacing: '-0.01em' }}>People</h1>
+              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Voice database — recognized automatically in all recordings</p>
             </div>
           </div>
           <button
@@ -78,7 +78,7 @@ export default function PeopleDirectory() {
         )}
 
         {loading ? (
-          <div className="flex items-center gap-2 py-8" style={{ color: '#475569' }}>
+          <div className="flex items-center gap-2 py-8" style={{ color: 'var(--text-muted)' }}>
             <Loader2 size={16} className="animate-spin" /> Loading…
           </div>
         ) : people.length === 0 && !creating ? (
@@ -114,7 +114,7 @@ function CreatePersonForm({ onCreated, onCancel }: { onCreated: (p: SpeakerProfi
   }
 
   return (
-    <div className="rounded-2xl p-5 space-y-4 max-w-2xl mb-5" style={{ background: '#0e1016', border: '1px solid #1c2030' }}>
+    <div className="rounded-2xl p-5 space-y-4 max-w-2xl mb-5" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}>
       <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#c7d2fe' }}>New Person</div>
 
       <input
@@ -124,20 +124,20 @@ function CreatePersonForm({ onCreated, onCancel }: { onCreated: (p: SpeakerProfi
         autoFocus
         onKeyDown={e => { if (e.key === 'Enter') handleCreate() }}
         className="w-full px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-        style={{ background: '#141720', border: '1px solid #1c2030', color: '#e2e8f0' }}
+        style={{ background: 'var(--bg-raised)', border: '1px solid var(--border)', color: 'var(--text)' }}
       />
       <input
         value={description}
         onChange={e => setDescription(e.target.value)}
         placeholder="Optional note (e.g. CEO, teammate)"
         className="w-full px-3 py-2 rounded-lg text-sm focus:outline-none"
-        style={{ background: '#141720', border: '1px solid #1c2030', color: '#94a3b8' }}
+        style={{ background: 'var(--bg-raised)', border: '1px solid var(--border)', color: '#94a3b8' }}
       />
 
       {error && <p style={{ fontSize: '0.75rem', color: '#f87171' }}>{error}</p>}
 
       <div className="flex gap-2">
-        <button onClick={onCancel} className="px-4 py-2 rounded-lg text-sm" style={{ background: '#141720', color: '#64748b' }}>Cancel</button>
+        <button onClick={onCancel} className="px-4 py-2 rounded-lg text-sm" style={{ background: 'var(--bg-raised)', color: 'var(--text-muted)' }}>Cancel</button>
         <button onClick={handleCreate} disabled={saving} className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50" style={{ background: '#4f46e5', color: 'white' }}>
           {saving ? <Loader2 size={13} className="animate-spin" /> : <Plus size={13} />}
           {saving ? 'Creating…' : 'Create'}
@@ -188,7 +188,7 @@ function PersonCard({ person, onDelete, onSampleAdded }: { person: SpeakerProfil
   }
 
   return (
-    <div className="rounded-2xl transition-all" style={{ background: '#0e1016', border: '1px solid #1c2030' }}>
+    <div className="rounded-2xl transition-all" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}>
       {/* Header row */}
       <div
         className="flex items-center gap-4 px-5 py-4 cursor-pointer"
@@ -199,9 +199,9 @@ function PersonCard({ person, onDelete, onSampleAdded }: { person: SpeakerProfil
           {person.name.charAt(0).toUpperCase()}
         </div>
         <div className="flex-1 min-w-0">
-          <div style={{ fontWeight: 500, color: '#e2e8f0' }}>{person.name}</div>
-          <div style={{ fontSize: '0.72rem', color: '#475569', marginTop: 2 }}>
-            {person.description && <span style={{ color: '#64748b', marginRight: 8 }}>{person.description}</span>}
+          <div style={{ fontWeight: 500, color: 'var(--text)' }}>{person.name}</div>
+          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 2 }}>
+            {person.description && <span style={{ color: 'var(--text-muted)', marginRight: 8 }}>{person.description}</span>}
             {person.sampleCount} voice sample{person.sampleCount !== 1 ? 's' : ''} · Last seen: {lastSeen}
           </div>
         </div>
@@ -214,7 +214,7 @@ function PersonCard({ person, onDelete, onSampleAdded }: { person: SpeakerProfil
           <button
             onClick={e => { e.stopPropagation(); onDelete() }}
             className="p-1.5 rounded-lg transition-colors"
-            style={{ color: '#2e3450' }}
+            style={{ color: 'var(--text-dim)' }}
             onMouseEnter={e => (e.currentTarget.style.color = '#f87171')}
             onMouseLeave={e => (e.currentTarget.style.color = '#2e3450')}
           ><Trash2 size={14} /></button>
@@ -223,8 +223,8 @@ function PersonCard({ person, onDelete, onSampleAdded }: { person: SpeakerProfil
 
       {/* Expanded controls */}
       {expanded && (
-        <div className="px-5 pb-5 pt-0 border-t" style={{ borderColor: '#1c2030' }}>
-          <div style={{ fontSize: '0.72rem', color: '#475569', marginBottom: 12, paddingTop: 12 }}>
+        <div className="px-5 pb-5 pt-0 border-t" style={{ borderColor: 'var(--border)' }}>
+          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginBottom: 12, paddingTop: 12 }}>
             Add voice samples so this person is recognized in recordings.
             {person.sampleCount === 0 && ' At least one sample is needed.'}
             {person.sampleCount > 0 && ` ${person.sampleCount} sample${person.sampleCount !== 1 ? 's' : ''} → more = better accuracy.`}
@@ -237,12 +237,12 @@ function PersonCard({ person, onDelete, onSampleAdded }: { person: SpeakerProfil
               <button
                 onClick={() => setAddingSource('meeting')}
                 className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all"
-                style={{ background: '#141720', border: '1px solid #1c2030', color: '#94a3b8' }}
+                style={{ background: 'var(--bg-raised)', border: '1px solid var(--border)', color: '#94a3b8' }}
               ><ScanFace size={13} /> From meeting</button>
               <button
                 onClick={() => { setAddingSource('file'); fileRef.current?.click() }}
                 className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all"
-                style={{ background: '#141720', border: '1px solid #1c2030', color: '#94a3b8' }}
+                style={{ background: 'var(--bg-raised)', border: '1px solid var(--border)', color: '#94a3b8' }}
               ><Upload size={13} /> Upload file</button>
             </div>
           )}
@@ -253,7 +253,7 @@ function PersonCard({ person, onDelete, onSampleAdded }: { person: SpeakerProfil
                 value={meetingId}
                 onChange={e => setMeetingId(e.target.value)}
                 className="w-full px-3 py-2 rounded-lg text-xs focus:outline-none"
-                style={{ background: '#141720', border: '1px solid #1c2030', color: '#e2e8f0' }}
+                style={{ background: 'var(--bg-raised)', border: '1px solid var(--border)', color: 'var(--text)' }}
               >
                 <option value="">— Select meeting —</option>
                 {meetingsWithRecording.map((m: any) => (
@@ -262,7 +262,7 @@ function PersonCard({ person, onDelete, onSampleAdded }: { person: SpeakerProfil
               </select>
               {addError && <p style={{ fontSize: '0.72rem', color: '#f87171' }}>{addError}</p>}
               <div className="flex gap-2">
-                <button onClick={() => { setAddingSource(null); setAddError(null) }} className="px-3 py-1.5 rounded-lg text-xs" style={{ background: '#141720', color: '#64748b' }}>Cancel</button>
+                <button onClick={() => { setAddingSource(null); setAddError(null) }} className="px-3 py-1.5 rounded-lg text-xs" style={{ background: 'var(--bg-raised)', color: 'var(--text-muted)' }}>Cancel</button>
                 <button onClick={handleAddSample} disabled={adding} className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium disabled:opacity-50" style={{ background: '#4f46e5', color: 'white' }}>
                   {adding ? <><Loader2 size={11} className="animate-spin" /> Processing…</> : <><Mic size={11} /> Register Voice</>}
                 </button>
@@ -274,7 +274,7 @@ function PersonCard({ person, onDelete, onSampleAdded }: { person: SpeakerProfil
             <div className="space-y-2">
               {addError && <p style={{ fontSize: '0.72rem', color: '#f87171' }}>{addError}</p>}
               <div className="flex gap-2">
-                <button onClick={() => { setAddingSource(null); setAddError(null) }} className="px-3 py-1.5 rounded-lg text-xs" style={{ background: '#141720', color: '#64748b' }}>Cancel</button>
+                <button onClick={() => { setAddingSource(null); setAddError(null) }} className="px-3 py-1.5 rounded-lg text-xs" style={{ background: 'var(--bg-raised)', color: 'var(--text-muted)' }}>Cancel</button>
                 <button onClick={handleAddSample} disabled={adding} className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium disabled:opacity-50" style={{ background: '#4f46e5', color: 'white' }}>
                   {adding ? <><Loader2 size={11} className="animate-spin" /> Processing…</> : <><Upload size={11} /> Register Sample</>}
                 </button>
@@ -292,12 +292,12 @@ function PersonCard({ person, onDelete, onSampleAdded }: { person: SpeakerProfil
 function EmptyState({ onAdd }: { onAdd: () => void }) {
   return (
     <div className="max-w-md space-y-4 pt-4">
-      <div style={{ color: '#2e3450', fontSize: '0.85rem' }}>
+      <div style={{ color: 'var(--text-dim)', fontSize: '0.85rem' }}>
         No people registered yet.
       </div>
-      <div className="rounded-2xl p-6 space-y-3" style={{ background: '#0e1016', border: '1px solid #1c2030' }}>
+      <div className="rounded-2xl p-6 space-y-3" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}>
         <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#c7d2fe' }}>How it works</div>
-        <ol className="space-y-2" style={{ fontSize: '0.78rem', color: '#64748b', paddingLeft: 16 }}>
+        <ol className="space-y-2" style={{ fontSize: '0.78rem', color: 'var(--text-muted)', paddingLeft: 16 }}>
           <li>Add a person by name</li>
           <li>Register their voice from any meeting recording or uploaded file</li>
           <li>The voice fingerprint is stored permanently</li>

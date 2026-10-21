@@ -631,6 +631,7 @@ function NewEventModal({ defaultDate, onClose, onCreated }: {
         endTime: endDt,
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       })
+      setSaving(false)  // reset before closing so button re-enables if modal stays open
       onCreated()
     } catch (e: any) {
       setError(e.message || 'Failed to create event')
