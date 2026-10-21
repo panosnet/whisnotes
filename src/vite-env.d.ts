@@ -71,6 +71,8 @@ declare global {
         delete: (id: string) => Promise<boolean>
         registerSample: (speakerId: string, audioPath: string, meetingId?: string) => Promise<any>
         getEmbeddings: (speakerId: string) => Promise<any[]>
+        getSamplePath: (speakerId: string) => Promise<string | null>
+        listForTts: () => Promise<string[]>
         identify: (audioPath: string) => Promise<any>
         identifyMeeting: (meetingId: string, recordingPath: string) => Promise<any>
         assignLabels: (meetingId: string, speakerMap: Record<string, string | null>) => Promise<any>
@@ -80,6 +82,7 @@ declare global {
         createProfile: (name: string, samplePath: string, meetingId?: string) => Promise<any>
         deleteProfile: (id: string) => Promise<boolean>
         synthesize: (text: string, voiceId: string) => Promise<{ path: string; durationSecs: number }>
+        synthesizePerson: (text: string, sampleWavPath: string) => Promise<{ path: string; durationSecs: number }>
         saveSynthesis: (sourcePath: string) => Promise<string | null>
         realtimeStart: (voiceId: string) => Promise<{ success: boolean }>
         realtimeChunk: (pcmBase64: string) => Promise<{ audiob64: string }>

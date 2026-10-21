@@ -113,6 +113,13 @@ export class VoiceCloneService {
     return { voiceId: result.voice_id, durationSecs: result.duration_secs }
   }
 
+  /** Synthesize using an absolute WAV path as reference (for People directory voices) */
+  async synthesizeWithRef(text: string, refWavPath: string, outputPath: string): Promise<{ path: string; durationSecs: number }> {
+    const result = await this.request(`SPEAK_WITH_REF|${text}|${refWavPath}|${outputPath}`, 60_000)
+    if (!result.success) throw new Error(result.error || 'Synthesis failed')
+    return { path: result.path, durationSecs: result.duration_secs }
+  }
+
   async synthesize(text: string, voiceId: string, outputPath: string): Promise<{ path: string; durationSecs: number }> {
     const provider = store.get('ttsProvider', 'local') as string
 

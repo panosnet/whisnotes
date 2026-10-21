@@ -180,5 +180,36 @@ export function registerSpeakerHandlers() {
     }
   })
 
+  /**
+   * Get the best available WAV file for a speaker (for TTS reference).
+   * Returns the path to the most recent WAV sample, or null if none exist.
+   */
+  ipcMain.handle('speakers:get-sample-path', async (_e, speakerId: string) => {
+    const { readdirSync, existsSync } = await import('fs')
+    const { join } = await import('path')
+    const { app: _app } = await import('electron')
+    const dir = join(_app.getPath('userData'), 'speaker-embeddings')
+    if (!existsSync(dir)) return null
+    const wavs = readdirSync(dir)
+      .filter(f => f.startsWith(speakerId) && f.endsWith('.wav'))
+      .sort()
+      .reverse()  // most recent first
+    return wavs.length > 0 ? join(dir, wavs[0]) : null
+  })
+
+  /**
+   * List all speakers that have at least one WAV sample (usable for TTS).
+   */
+  ipcMain.handle('speakers:list-for-tts', async () => {
+    const { readdirSync, existsSync } = await import('fs')
+    const { join } = await import('path')
+    const { app: _app } = await import('electron')
+    const dir = join(_app.getPath('userData'), 'speaker-embeddings')
+    if (!existsSync(dir)) return []
+    const wavFiles = readdirSync(dir).filter(f => f.endsWith('.wav'))
+    const speakerIds = [...new Set(wavFiles.map(f => f.split('.')[0]))]
+    return speakerIds
+  })
+
   console.log('Speaker recognition IPC handlers registered')
 }

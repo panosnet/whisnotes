@@ -111,6 +111,19 @@ def cmd_clone(sample_wav_path: str, voice_id: str) -> dict:
     return {"success": True, "voice_id": voice_id, "duration_secs": duration}
 
 
+def cmd_speak_with_ref(text: str, ref_wav_path: str, output_wav_path: str) -> dict:
+    """Synthesise using any absolute WAV path as reference — for People directory voices."""
+    from pathlib import Path
+    if not Path(ref_wav_path).exists():
+        return {"success": False, "error": f"Reference file not found: {ref_wav_path}"}
+    if not text.strip():
+        return {"success": False, "error": "Empty text"}
+    tts = get_tts()
+    tts.tts_to_file(text=text, speaker_wav=ref_wav_path, language="en", file_path=output_wav_path)
+    duration = audio_duration(output_wav_path)
+    return {"success": True, "path": output_wav_path, "duration_secs": duration}
+
+
 def cmd_speak(text: str, voice_id: str, output_wav_path: str) -> dict:
     """Synthesise speech in the cloned voice and write to output_wav_path."""
     ref = embedding_path(voice_id)
@@ -216,6 +229,9 @@ for line in sys.stdin:
             result = cmd_clone(parts[1], parts[2])
         elif cmd == 'SPEAK' and len(parts) >= 4:
             result = cmd_speak(parts[1], parts[2], parts[3])
+        elif cmd == 'SPEAK_WITH_REF' and len(parts) >= 4:
+            # Directly use any WAV as reference — for People directory voices
+            result = cmd_speak_with_ref(parts[1], parts[2], parts[3])
         elif cmd == 'STREAM_START' and len(parts) >= 2:
             result = cmd_stream_start(parts[1])
         elif cmd == 'STREAM_CHUNK' and len(parts) >= 2:

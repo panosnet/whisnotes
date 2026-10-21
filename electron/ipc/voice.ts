@@ -43,6 +43,15 @@ export function registerVoiceHandlers() {
     return profileRepo.delete(id)
   })
 
+  /** Synthesize using a People directory speaker's sample WAV */
+  ipcMain.handle('voice:synthesize-person', async (_e, text: string, sampleWavPath: string) => {
+    const outputPath = join(voiceCloneService.getSynthDir(), `${randomUUID()}.wav`)
+    sendToAll('voice:synthesis-progress', { status: 'synthesizing', text })
+    const result = await voiceCloneService.synthesizeWithRef(text, sampleWavPath, outputPath)
+    sendToAll('voice:synthesis-progress', { status: 'done', path: result.path, durationSecs: result.durationSecs })
+    return result
+  })
+
   ipcMain.handle('voice:synthesize', async (_e, text: string, voiceId: string) => {
     const outputPath = join(voiceCloneService.getSynthDir(), `${randomUUID()}.wav`)
     sendToAll('voice:synthesis-progress', { status: 'synthesizing', text })
@@ -91,6 +100,14 @@ export function registerVoiceHandlers() {
 
   ipcMain.handle('voice:open-blackhole-url', () => {
     shell.openExternal('https://github.com/ExistentialAudio/BlackHole?tab=readme-ov-file#installation')
+  })
+
+  /** Copy an arbitrary WAV to VOICES_DIR so it can be used as a voice ID by tts_server.py */
+  ipcMain.handle('voice:clone-from-path', async (_e, voiceId: string, wavPath: string) => {
+    const { copyFileSync } = await import('fs')
+    const dest = join(voiceCloneService.getVoicesDir(), `${voiceId}.wav`)
+    copyFileSync(wavPath, dest)
+    return dest
   })
 
   console.log('Voice IPC handlers registered')

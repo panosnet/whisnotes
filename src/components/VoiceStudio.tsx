@@ -307,13 +307,26 @@ function LibraryTab({ profiles, loading, onDelete, onRefresh }: {
 // ── TTS Tab ───────────────────────────────────────────────────────────────────
 
 function TTSTab({ profiles }: { profiles: VoiceProfile[] }) {
-  const [voiceId, setVoiceId] = useState('')
+  const [voiceId, setVoiceId] = useState('')        // 'profile:{id}' or 'person:{id}'
+  const [people, setPeople] = useState<Array<{ id: string; name: string; samplePath: string | null }>>([])
   const [text, setText] = useState('')
   const [synthesising, setSynthesising] = useState(false)
-  const [blobUrl, setBlobUrl] = useState<string | null>(null)   // blob URL — works from any origin
-  const [rawPath, setRawPath] = useState<string | null>(null)   // file path for saving
+  const [blobUrl, setBlobUrl] = useState<string | null>(null)
+  const [rawPath, setRawPath] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const audioRef = useRef<HTMLAudioElement>(null)
+
+  // Load People with their WAV samples
+  useEffect(() => {
+    window.api.speakers.list().then(async (speakers: any[]) => {
+      const withPaths = await Promise.all(speakers.map(async (s: any) => ({
+        id: s.id,
+        name: s.name,
+        samplePath: await window.api.speakers.getSamplePath(s.id).catch(() => null),
+      })))
+      setPeople(withPaths.filter(p => p.samplePath))
+    }).catch(() => {})
+  }, [])
 
   // Clean up blob URL on unmount
   useEffect(() => () => { if (blobUrl) URL.revokeObjectURL(blobUrl) }, [blobUrl])
@@ -342,7 +355,15 @@ function TTSTab({ profiles }: { profiles: VoiceProfile[] }) {
     if (!text.trim()) { setError('Enter some text'); return }
     setError(null); setSynthesising(true); setBlobUrl(null); setRawPath(null)
     try {
-      await window.api.voice.synthesize(text.trim(), voiceId)
+      if (voiceId.startsWith('person:')) {
+        const personId = voiceId.slice('person:'.length)
+        const person = people.find(p => p.id === personId)
+        if (!person?.samplePath) throw new Error('No voice sample for this person')
+        await window.api.voice.synthesizePerson(text.trim(), person.samplePath)
+      } else {
+        const actualId = voiceId.startsWith('profile:') ? voiceId.slice('profile:'.length) : voiceId
+        await window.api.voice.synthesize(text.trim(), actualId)
+      }
     } catch (err: any) {
       setError(err.message || 'Synthesis failed'); setSynthesising(false)
     }
@@ -353,9 +374,10 @@ function TTSTab({ profiles }: { profiles: VoiceProfile[] }) {
     await window.api.voice.saveSynthesis(rawPath)
   }
 
-  if (profiles.length === 0) return (
+  const hasAnyVoice = profiles.length > 0 || people.length > 0
+  if (!hasAnyVoice) return (
     <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-      Create a voice profile first in the Voice Library tab.
+      Create a voice profile in Voice Library, or register a person's voice in the People tab.
     </div>
   )
 
@@ -370,7 +392,16 @@ function TTSTab({ profiles }: { profiles: VoiceProfile[] }) {
           style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)', color: 'var(--text)' }}
         >
           <option value="">— Select voice —</option>
-          {profiles.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+          {profiles.length > 0 && (
+            <optgroup label="Voice Profiles">
+              {profiles.map(p => <option key={p.id} value={`profile:${p.id}`}>{p.name}</option>)}
+            </optgroup>
+          )}
+          {people.length > 0 && (
+            <optgroup label="People (from your voice database)">
+              {people.map(p => <option key={p.id} value={`person:${p.id}`}>{p.name}</option>)}
+            </optgroup>
+          )}
         </select>
       </div>
 
@@ -430,7 +461,8 @@ function TTSTab({ profiles }: { profiles: VoiceProfile[] }) {
 // ── Real-time Tab ─────────────────────────────────────────────────────────────
 
 function RealtimeTab({ profiles }: { profiles: VoiceProfile[] }) {
-  const [voiceId, setVoiceId] = useState('')
+  const [voiceId, setVoiceId] = useState('')   // 'profile:{id}' or 'person:{id}'
+  const [people, setPeople] = useState<Array<{ id: string; name: string; samplePath: string | null }>>([])
   const [blackholeInstalled, setBlackholeInstalled] = useState<boolean | null>(null)
   const [running, setRunning] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -444,7 +476,13 @@ function RealtimeTab({ profiles }: { profiles: VoiceProfile[] }) {
 
   useEffect(() => {
     window.api.voice.checkBlackhole().then(r => setBlackholeInstalled(r.installed))
-    // Clean up on unmount
+    window.api.speakers.list().then(async (speakers: any[]) => {
+      const withPaths = await Promise.all(speakers.map(async (s: any) => ({
+        id: s.id, name: s.name,
+        samplePath: await window.api.speakers.getSamplePath(s.id).catch(() => null),
+      })))
+      setPeople(withPaths.filter(p => p.samplePath))
+    }).catch(() => {})
     return () => { stopPipeline() }
   }, [])
 
@@ -471,7 +509,19 @@ function RealtimeTab({ profiles }: { profiles: VoiceProfile[] }) {
     }
 
     try {
-      await window.api.voice.realtimeStart(voiceId)
+      // Resolve the actual voice ID for the server
+      let actualVoiceId = voiceId
+      if (voiceId.startsWith('person:')) {
+        const personId = voiceId.slice('person:'.length)
+        const person = people.find(p => p.id === personId)
+        if (!person?.samplePath) { setError('No voice sample for this person'); return }
+        // Copy sample to voices dir so server can find it by ID
+        actualVoiceId = personId
+        await window.api.invoke('voice:clone-from-path', personId, person.samplePath)
+      } else if (voiceId.startsWith('profile:')) {
+        actualVoiceId = voiceId.slice('profile:'.length)
+      }
+      await window.api.voice.realtimeStart(actualVoiceId)
       isActiveRef.current = true
 
       // Get mic access
@@ -585,7 +635,16 @@ function RealtimeTab({ profiles }: { profiles: VoiceProfile[] }) {
           style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)', color: 'var(--text)' }}
         >
           <option value="">— Select voice —</option>
-          {profiles.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+          {profiles.length > 0 && (
+            <optgroup label="Voice Profiles">
+              {profiles.map(p => <option key={p.id} value={`profile:${p.id}`}>{p.name}</option>)}
+            </optgroup>
+          )}
+          {people.length > 0 && (
+            <optgroup label="People (from your voice database)">
+              {people.map(p => <option key={p.id} value={`person:${p.id}`}>{p.name}</option>)}
+            </optgroup>
+          )}
         </select>
       </div>
 
