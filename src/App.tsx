@@ -87,12 +87,12 @@ function App() {
   }
 
   return (
-    <div className="flex h-screen text-slate-100" style={{ background: '#07080f' }}>
+    <div className="flex h-screen text-slate-100" style={{ background: 'var(--bg-base)' }}>
 
       {/* Sidebar — narrow rail with icon + label on active */}
       <nav
         className="flex flex-col items-center py-5 gap-1 border-r"
-        style={{ width: 60, background: '#0e1016', borderColor: '#1c2030' }}
+        style={{ width: 60, background: 'var(--bg-surface)', borderColor: 'var(--border)' }}
       >
         {NAV.map(({ id, icon: Icon, label }) => {
           const active = currentView === id

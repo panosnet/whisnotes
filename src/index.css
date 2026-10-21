@@ -2,6 +2,33 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Theme tokens ───────────────────────────────────────────────────────────── */
+:root, .dark {
+  --bg-base:    #07080f;
+  --bg-surface: #0e1016;
+  --bg-raised:  #141720;
+  --border:     #1c2030;
+  --border-sub: #252a3d;
+  --text:       #f1f5f9;
+  --text-muted: #475569;
+  --text-dim:   #2e3450;
+  --scrollbar:  #1c2030;
+  --scrollbar-h:#252a3d;
+}
+
+.light {
+  --bg-base:    #f8fafc;
+  --bg-surface: #ffffff;
+  --bg-raised:  #f1f5f9;
+  --border:     #e2e8f0;
+  --border-sub: #cbd5e1;
+  --text:       #0f172a;
+  --text-muted: #64748b;
+  --text-dim:   #94a3b8;
+  --scrollbar:  #cbd5e1;
+  --scrollbar-h:#94a3b8;
+}
+
 @layer base {
   html { font-size: 15px; }
 
@@ -10,15 +37,15 @@
     font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background: #07080f;
-    color: #f1f5f9;
+    background: var(--bg-base);
+    color: var(--text);
     letter-spacing: -0.01em;
   }
 
   ::-webkit-scrollbar        { width: 5px; height: 5px; }
   ::-webkit-scrollbar-track  { background: transparent; }
-  ::-webkit-scrollbar-thumb  { background: #1c2030; border-radius: 2px; }
-  ::-webkit-scrollbar-thumb:hover { background: #252a3d; }
+  ::-webkit-scrollbar-thumb  { background: var(--scrollbar); border-radius: 2px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-h); }
 
   code, kbd, pre {
     font-family: 'JetBrains Mono', 'Fira Code', Menlo, 'Cascadia Code', monospace;
@@ -39,7 +66,5 @@
 }
 .rec-pulse { animation: rec-pulse 1.8s ease-in-out infinite; }
 
-/* Waveform bar — NO CSS transition: smoothing is handled entirely in JS (RAF lerp).
-   Adding a CSS transition here would restart every 16ms frame and prevent bars
-   from ever reaching their target position. */
+/* Waveform bar — NO CSS transition: smoothing handled entirely in JS RAF lerp. */
 .wave-bar { border-radius: 2px; }

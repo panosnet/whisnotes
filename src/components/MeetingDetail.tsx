@@ -236,7 +236,7 @@ export default function MeetingDetail({ meeting, onBack }: MeetingDetailProps) {
   }
 
   return (
-    <div className="h-full flex flex-col bg-[#07080f]">
+    <div className="h-full flex flex-col bg-[var(--bg-base)]">
       {/* Header */}
       <div className="bg-ink-900 border-b border-ink-700 p-6">
         {/* Delete confirmation */}
@@ -272,7 +272,7 @@ export default function MeetingDetail({ meeting, onBack }: MeetingDetailProps) {
             <button
               onClick={() => { setCloneName(meeting.title); setCloneModal(true) }}
               className="p-2 rounded-lg transition-colors"
-              style={{ color: '#475569' }}
+              style={{ color: 'var(--text-muted)' }}
               title="Clone voice from this recording"
               onMouseEnter={e => (e.currentTarget.style.color = '#818cf8')}
               onMouseLeave={e => (e.currentTarget.style.color = '#475569')}
@@ -291,12 +291,12 @@ export default function MeetingDetail({ meeting, onBack }: MeetingDetailProps) {
           {/* Clone voice modal */}
           {cloneModal && (
             <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-              <div className="rounded-2xl p-6 space-y-4 max-w-sm w-full mx-4" style={{ background: '#0e1016', border: '1px solid #1c2030' }}>
+              <div className="rounded-2xl p-6 space-y-4 max-w-sm w-full mx-4" style={{ background: 'var(--bg-surface)', border: '1px solid #1c2030' }}>
                 <div className="flex items-center gap-2" style={{ color: '#818cf8' }}>
                   <Wand2 size={18} />
                   <span className="font-semibold">Clone Voice from Recording</span>
                 </div>
-                <p style={{ fontSize: '0.78rem', color: '#64748b' }}>
+                <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
                   Creates a voice profile from the audio in this meeting. 30+ seconds of clear speech gives best results.
                 </p>
                 <input
@@ -304,12 +304,12 @@ export default function MeetingDetail({ meeting, onBack }: MeetingDetailProps) {
                   onChange={e => setCloneName(e.target.value)}
                   placeholder="Voice profile name"
                   className="w-full px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  style={{ background: '#141720', border: '1px solid #1c2030', color: '#e2e8f0' }}
+                  style={{ background: 'var(--bg-raised)', border: '1px solid #1c2030', color: 'var(--text)' }}
                   autoFocus
                   onKeyDown={e => { if (e.key === 'Enter') handleCloneVoice() }}
                 />
                 <div className="flex gap-2">
-                  <button onClick={() => setCloneModal(false)} className="flex-1 py-2 rounded-lg text-sm" style={{ background: '#141720', color: '#64748b' }}>Cancel</button>
+                  <button onClick={() => setCloneModal(false)} className="flex-1 py-2 rounded-lg text-sm" style={{ background: 'var(--bg-raised)', color: 'var(--text-muted)' }}>Cancel</button>
                   <button onClick={handleCloneVoice} disabled={cloning} className="flex-1 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2 disabled:opacity-50" style={{ background: '#4f46e5', color: 'white' }}>
                     {cloning ? 'Cloning…' : '✦ Clone Voice'}
                   </button>
@@ -409,7 +409,7 @@ export default function MeetingDetail({ meeting, onBack }: MeetingDetailProps) {
                 }}
                 disabled={identifying}
                 className="px-4 py-2 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50"
-                style={{ background: '#141720', border: '1px solid #1c2030', color: '#94a3b8' }}
+                style={{ background: 'var(--bg-raised)', border: '1px solid #1c2030', color: '#94a3b8' }}
                 title="Match speakers in this recording against your People database"
               >
                 <ScanFace size={18} />

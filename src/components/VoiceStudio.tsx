@@ -434,22 +434,92 @@ function RealtimeTab({ profiles }: { profiles: VoiceProfile[] }) {
   const [blackholeInstalled, setBlackholeInstalled] = useState<boolean | null>(null)
   const [running, setRunning] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [latencyMs, setLatencyMs] = useState<number | null>(null)
+
+  // Audio pipeline refs — live for the duration of a real-time session
+  const audioCtxRef    = useRef<AudioContext | null>(null)
+  const processorRef   = useRef<ScriptProcessorNode | null>(null)
+  const streamRef      = useRef<MediaStream | null>(null)
 
   useEffect(() => {
     window.api.voice.checkBlackhole().then(r => setBlackholeInstalled(r.installed))
+    // Clean up on unmount
+    return () => { stopPipeline() }
   }, [])
+
+  const stopPipeline = () => {
+    processorRef.current?.disconnect()
+    processorRef.current = null
+    streamRef.current?.getTracks().forEach(t => t.stop())
+    streamRef.current = null
+    audioCtxRef.current?.close().catch(() => {})
+    audioCtxRef.current = null
+  }
 
   const handleToggle = async () => {
     if (!voiceId) { setError('Select a voice'); return }
     setError(null)
+
     if (running) {
+      stopPipeline()
       await window.api.voice.realtimeStop()
       setRunning(false)
-    } else {
-      try {
-        await window.api.voice.realtimeStart(voiceId)
-        setRunning(true)
-      } catch (err: any) { setError(err.message || 'Failed to start') }
+      setLatencyMs(null)
+      return
+    }
+
+    try {
+      await window.api.voice.realtimeStart(voiceId)
+
+      // Get mic access
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: { sampleRate: 16000, channelCount: 1, echoCancellation: true }
+      })
+      streamRef.current = stream
+
+      const ctx = new AudioContext({ sampleRate: 16000 })
+      audioCtxRef.current = ctx
+
+      const src = ctx.createMediaStreamSource(stream)
+      // 3200 samples = 200ms at 16 kHz
+      const proc = ctx.createScriptProcessor(3200, 1, 1)
+      processorRef.current = proc
+
+      proc.onaudioprocess = async (e) => {
+        if (!running && audioCtxRef.current) {} // keep ref alive
+        const float32 = e.inputBuffer.getChannelData(0)
+        // Convert float32 → int16
+        const int16 = new Int16Array(float32.length)
+        for (let i = 0; i < float32.length; i++) {
+          int16[i] = Math.max(-32768, Math.min(32767, float32[i] * 32767))
+        }
+        const b64 = btoa(String.fromCharCode(...new Uint8Array(int16.buffer)))
+        const t0 = Date.now()
+        try {
+          const res = await window.api.voice.realtimeChunk(b64)
+          setLatencyMs(Date.now() - t0)
+          if (res?.audiob64) {
+            // Decode and play converted audio
+            const pcmBytes = Uint8Array.from(atob(res.audiob64), c => c.charCodeAt(0))
+            const int16Out = new Int16Array(pcmBytes.buffer)
+            const float32Out = new Float32Array(int16Out.length)
+            for (let i = 0; i < int16Out.length; i++) float32Out[i] = int16Out[i] / 32768
+            const outBuf = ctx.createBuffer(1, float32Out.length, 16000)
+            outBuf.copyToChannel(float32Out, 0)
+            const srcOut = ctx.createBufferSource()
+            srcOut.buffer = outBuf
+            srcOut.connect(ctx.destination)
+            srcOut.start()
+          }
+        } catch { /* chunk error — keep running */ }
+      }
+
+      src.connect(proc)
+      proc.connect(ctx.destination)
+      setRunning(true)
+    } catch (err: any) {
+      setError(err.message || 'Failed to start')
+      stopPipeline()
     }
   }
 
@@ -520,24 +590,31 @@ function RealtimeTab({ profiles }: { profiles: VoiceProfile[] }) {
 
       <button
         onClick={handleToggle}
-        disabled={!blackholeInstalled}
-        className="flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-medium transition-all disabled:opacity-40"
-        style={{
-          background: running ? '#7f1d1d' : '#4f46e5',
-          color: 'white',
-        }}
+        className="flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-medium transition-all"
+        style={{ background: running ? '#7f1d1d' : '#4f46e5', color: 'white' }}
       >
         {running ? <><Square size={14} /> Stop Real-time</> : <><Mic size={14} /> Start Real-time Conversion</>}
       </button>
 
       {running && (
         <div className="rounded-xl p-4 space-y-2" style={{ background: '#0e1016', border: '1px solid #1c2030' }}>
-          <div className="flex items-center gap-2" style={{ color: '#f97316', fontSize: '0.78rem' }}>
-            <div className="w-2 h-2 rounded-full rec-pulse" style={{ background: '#f97316' }} />
-            Transforming mic input in real-time
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2" style={{ color: '#f97316', fontSize: '0.78rem' }}>
+              <div className="w-2 h-2 rounded-full rec-pulse" style={{ background: '#f97316' }} />
+              Transforming mic input in real-time
+            </div>
+            {latencyMs !== null && (
+              <span style={{ fontSize: '0.7rem', color: '#64748b', fontFamily: 'monospace' }}>
+                {latencyMs}ms
+              </span>
+            )}
           </div>
           <p style={{ fontSize: '0.72rem', color: '#475569' }}>
-            In Zoom/Meet/Slack: set your microphone to <strong style={{ color: '#94a3b8' }}>BlackHole 2ch</strong> to use the transformed voice.
+            Converted audio plays through your <strong style={{ color: '#94a3b8' }}>default output</strong>.
+            {blackholeInstalled
+              ? <> To route into calls: set <strong style={{ color: '#94a3b8' }}>BlackHole 2ch</strong> as your output in System Settings, then as microphone in Zoom/Meet.</>
+              : <> Install BlackHole to route transformed audio into calls.</>
+            }
           </p>
         </div>
       )}

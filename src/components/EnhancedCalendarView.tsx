@@ -44,6 +44,7 @@ export default function EnhancedCalendarView() {
   const [view, setView] = useState<'month' | 'week' | 'day'>('month')
   const [selectedDay, setSelectedDay] = useState<Date | null>(null)
   const [daySummaries, setDaySummaries] = useState<Map<string, DaySummary>>(new Map())
+  const [showNewEvent, setShowNewEvent] = useState(false)
   const [monthStats, setMonthStats] = useState({
     totalMeetings: 0,
     totalDuration: 0,
@@ -222,7 +223,16 @@ export default function EnhancedCalendarView() {
   const days = getDaysInMonth()
 
   return (
-    <div className="h-full flex bg-[#07080f]">
+    <div className="h-full flex" style={{ background: 'var(--bg-base)' }}>
+      {/* New-event modal */}
+      {showNewEvent && (
+        <NewEventModal
+          defaultDate={selectedDay || new Date()}
+          onClose={() => setShowNewEvent(false)}
+          onCreated={() => { loadEvents(); setShowNewEvent(false) }}
+        />
+      )}
+
       {/* Main Calendar */}
       <div className="flex-1 flex flex-col">
         {/* Header */}
@@ -239,6 +249,11 @@ export default function EnhancedCalendarView() {
                     view === v ? 'bg-primary-600' : 'bg-ink-800 hover:bg-slate-700'
                   }`}>{v}</button>
               ))}
+              <button
+                onClick={() => setShowNewEvent(true)}
+                className="px-3 py-1.5 rounded-lg text-sm bg-ink-800 hover:bg-primary-700 transition-colors flex items-center gap-1"
+                title="Add calendar event"
+              >+ Event</button>
             </div>
           </div>
 
@@ -580,6 +595,99 @@ export default function EnhancedCalendarView() {
           })()}
         </div>
       )}
+    </div>
+  )
+}
+
+// ── New Event Modal ────────────────────────────────────────────────────────────
+
+function fmtDateInput(d: Date) {
+  return d.toISOString().slice(0, 10)
+}
+
+function NewEventModal({ defaultDate, onClose, onCreated }: {
+  defaultDate: Date
+  onClose: () => void
+  onCreated: () => void
+}) {
+  const [title, setTitle] = useState('')
+  const [date, setDate] = useState(fmtDateInput(defaultDate))
+  const [startTime, setStartTime] = useState('09:00')
+  const [endTime, setEndTime] = useState('10:00')
+  const [description, setDescription] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const handleSubmit = async () => {
+    if (!title.trim()) { setError('Title is required'); return }
+    setSaving(true); setError(null)
+    try {
+      const startDt = new Date(`${date}T${startTime}:00`)
+      const endDt   = new Date(`${date}T${endTime}:00`)
+      await window.api.calendar.create({
+        title: title.trim(),
+        description: description.trim() || undefined,
+        startTime: startDt,
+        endTime: endDt,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      })
+      onCreated()
+    } catch (e: any) {
+      setError(e.message || 'Failed to create event')
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+      <div className="rounded-2xl p-6 space-y-4 w-full max-w-sm mx-4"
+        style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)' }}>
+        <div style={{ fontWeight: 600, color: 'var(--text)', fontSize: '1rem' }}>New Calendar Event</div>
+
+        <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Event title *"
+          autoFocus onKeyDown={e => e.key === 'Enter' && handleSubmit()}
+          className="w-full px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+          style={{ background: 'var(--bg-raised)', border: '1px solid var(--border)', color: 'var(--text)' }} />
+
+        <div className="grid grid-cols-3 gap-2">
+          <div className="col-span-3">
+            <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>Date</label>
+            <input type="date" value={date} onChange={e => setDate(e.target.value)}
+              className="w-full px-3 py-2 rounded-lg text-sm focus:outline-none"
+              style={{ background: 'var(--bg-raised)', border: '1px solid var(--border)', color: 'var(--text)' }} />
+          </div>
+          <div>
+            <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>Start</label>
+            <input type="time" value={startTime} onChange={e => setStartTime(e.target.value)}
+              className="w-full px-3 py-2 rounded-lg text-sm focus:outline-none"
+              style={{ background: 'var(--bg-raised)', border: '1px solid var(--border)', color: 'var(--text)' }} />
+          </div>
+          <div>
+            <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)', display: 'block', marginBottom: 4 }}>End</label>
+            <input type="time" value={endTime} onChange={e => setEndTime(e.target.value)}
+              className="w-full px-3 py-2 rounded-lg text-sm focus:outline-none"
+              style={{ background: 'var(--bg-raised)', border: '1px solid var(--border)', color: 'var(--text)' }} />
+          </div>
+        </div>
+
+        <input value={description} onChange={e => setDescription(e.target.value)}
+          placeholder="Description (optional)"
+          className="w-full px-3 py-2 rounded-lg text-sm focus:outline-none"
+          style={{ background: 'var(--bg-raised)', border: '1px solid var(--border)', color: 'var(--text-muted)' }} />
+
+        {error && <p style={{ fontSize: '0.75rem', color: '#f87171' }}>{error}</p>}
+
+        <div className="flex gap-2 pt-1">
+          <button onClick={onClose}
+            className="flex-1 py-2 rounded-lg text-sm transition-all"
+            style={{ background: 'var(--bg-raised)', color: 'var(--text-muted)' }}>Cancel</button>
+          <button onClick={handleSubmit} disabled={saving}
+            className="flex-1 py-2 rounded-lg text-sm font-medium transition-all disabled:opacity-50"
+            style={{ background: '#4f46e5', color: 'white' }}>
+            {saving ? 'Saving…' : 'Create'}
+          </button>
+        </div>
+      </div>
     </div>
   )
 }

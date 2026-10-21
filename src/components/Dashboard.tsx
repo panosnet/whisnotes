@@ -37,7 +37,7 @@ export default function Dashboard({ onStartRecording, onOpenMeeting }: Dashboard
   const openMeeting = (m: Meeting) => { setCurrentMeeting(m); onOpenMeeting() }
 
   return (
-    <div className="h-full overflow-y-auto" style={{ background: '#07080f' }}>
+    <div className="h-full overflow-y-auto" style={{ background: 'var(--bg-base)' }}>
       <div className="max-w-2xl mx-auto px-8 py-12 space-y-10">
 
         {/* Wordmark */}
@@ -48,7 +48,7 @@ export default function Dashboard({ onStartRecording, onOpenMeeting }: Dashboard
           >
             WhisNotes
           </h1>
-          <p style={{ fontSize: '0.8rem', color: '#475569', marginTop: 2 }}>
+          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: 2 }}>
             Local AI transcription — private by default
           </p>
         </div>
@@ -112,7 +112,7 @@ export default function Dashboard({ onStartRecording, onOpenMeeting }: Dashboard
         {recent.length > 0 && (
           <div>
             <div
-              style={{ fontSize: '0.72rem', color: '#475569', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 12 }}
+              style={{ fontSize: '0.72rem', color: 'var(--text-muted)', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 12 }}
             >
               Recent
             </div>
@@ -126,14 +126,14 @@ export default function Dashboard({ onStartRecording, onOpenMeeting }: Dashboard
 
         {/* Empty state */}
         {recent.length === 0 && env.checked && (
-          <div style={{ color: '#2e3450', fontSize: '0.85rem', paddingTop: 16 }}>
+          <div style={{ color: 'var(--text-dim)', fontSize: '0.85rem', paddingTop: 16 }}>
             No recordings yet. Hit Start Recording to begin.
           </div>
         )}
 
         {/* System status — compact footer when everything is fine */}
         {env.checked && allReady && (
-          <div className="flex items-center gap-4 pt-2" style={{ color: '#2e3450', fontSize: '0.7rem' }}>
+          <div className="flex items-center gap-4 pt-2" style={{ color: 'var(--text-dim)', fontSize: '0.7rem' }}>
             <span>SoX ✓</span><span>Python ✓</span><span>Whisper ✓</span>
           </div>
         )}
@@ -148,7 +148,7 @@ function Stat({ value, label }: { value: string | number; label: string }) {
       <div style={{ fontSize: '1.6rem', fontWeight: 700, color: '#e0e7ff', letterSpacing: '-0.02em' }}>
         {value}
       </div>
-      <div style={{ fontSize: '0.72rem', color: '#475569', marginTop: 1 }}>{label}</div>
+      <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 1 }}>{label}</div>
     </div>
   )
 }
@@ -163,7 +163,7 @@ function SetupRow({ ok, label, fix }: { ok: boolean; label: string; fix: string 
         <span style={{ fontSize: '0.78rem', color: ok ? '#94a3b8' : '#e2e8f0' }}>{label}</span>
         {!ok && (
           <code
-            style={{ display: 'block', fontSize: '0.7rem', color: '#64748b', marginTop: 2, fontFamily: 'JetBrains Mono, Menlo, monospace' }}
+            style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: 2, fontFamily: 'JetBrains Mono, Menlo, monospace' }}
           >{fix}</code>
         )}
       </div>
@@ -192,7 +192,7 @@ function MeetingRow({ meeting, onClick }: { meeting: Meeting; onClick: () => voi
       <div className="flex-1 min-w-0">
         <div
           className="truncate"
-          style={{ fontSize: '0.875rem', color: '#e2e8f0', fontWeight: 500 }}
+          style={{ fontSize: '0.875rem', color: 'var(--text)', fontWeight: 500 }}
         >
           {meeting.title}
         </div>
