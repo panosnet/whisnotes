@@ -48,6 +48,17 @@ export default function CaptureView({ onViewMeeting }: { onViewMeeting?: () => v
 
   // Keep refs in sync so shortcut closure always has fresh values
   useEffect(() => { isCapturingRef.current = isCapturing }, [isCapturing])
+
+  // Drive the elapsed timer from isCapturing state — starts exactly when display appears
+  useEffect(() => {
+    if (!isCapturing) return
+    const start = sessionStartRef.current || Date.now()
+    setElapsedSeconds(0)
+    const id = setInterval(() => {
+      setElapsedSeconds(Math.floor((Date.now() - start) / 1000))
+    }, 500)
+    return () => clearInterval(id)
+  }, [isCapturing])
   useEffect(() => { currentMeetingIdRef.current = currentMeetingId }, [currentMeetingId])
   useEffect(() => { elapsedSecondsRef.current = elapsedSeconds }, [elapsedSeconds])
 
@@ -109,17 +120,12 @@ export default function CaptureView({ onViewMeeting }: { onViewMeeting?: () => v
       setJustStoppedMeetingId(null)
       clearSegments()
 
-      const recordingStart = Date.now()
-      sessionStartRef.current = recordingStart
+      sessionStartRef.current = Date.now()
       setElapsedSeconds(0)
-      // Use a captured local to avoid any ref-vs-closure ambiguity
-      timerRef.current = setInterval(() => {
-        setElapsedSeconds(Math.floor((Date.now() - recordingStart) / 1000))
-      }, 500) // 500ms for snappier updates
 
       // Pass language so Whisper transcribes in the right language
       await window.api.audio.startCapture(selectedDeviceId, meeting.id, language)
-      setCapturing(true)
+      setCapturing(true)  // timer effect starts here (see useEffect below)
     } catch (err: any) {
       console.error('Failed to start capture:', err)
       // Clean up the orphaned meeting record
@@ -143,7 +149,7 @@ export default function CaptureView({ onViewMeeting }: { onViewMeeting?: () => v
   }
 
   const handleStopCapture = async () => {
-    if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null }
+    // Timer clears automatically via useEffect([isCapturing]) cleanup
     setIsProcessing(true)
 
     try {
