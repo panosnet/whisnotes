@@ -145,18 +145,39 @@ export function registerSpeakerHandlers() {
   })
 
   /**
-   * Save a live-recorded audio buffer (webm from MediaRecorder) to disk
-   * so speaker_server.py can read it for embedding extraction.
+   * Save a live-recorded audio buffer (webm from MediaRecorder), convert to WAV
+   * via ffmpeg, and return the WAV path so speaker_server.py can read it.
    */
   ipcMain.handle('speakers:save-live-sample', async (_e, speakerId: string, uint8Array: number[]) => {
-    const { writeFileSync, mkdirSync } = await import('fs')
+    const { writeFileSync, mkdirSync, unlinkSync } = await import('fs')
     const { join } = await import('path')
+    const { execFile } = await import('child_process')
+    const { promisify } = await import('util')
+    const execFileAsync = promisify(execFile)
     const { app: _app } = await import('electron')
+
     const dir = join(_app.getPath('userData'), 'speaker-embeddings')
     mkdirSync(dir, { recursive: true })
-    const path = join(dir, `${speakerId}.live-${Date.now()}.webm`)
-    writeFileSync(path, Buffer.from(uint8Array))
-    return path
+
+    const webmPath = join(dir, `${speakerId}.live-${Date.now()}.webm`)
+    const wavPath  = webmPath.replace('.webm', '.wav')
+
+    // Write raw webm from MediaRecorder
+    writeFileSync(webmPath, Buffer.from(uint8Array))
+
+    // Convert to 16kHz mono WAV (required by resemblyzer)
+    try {
+      await execFileAsync('/opt/homebrew/bin/ffmpeg', [
+        '-y', '-i', webmPath,
+        '-ar', '16000', '-ac', '1', '-f', 'wav', wavPath
+      ])
+      unlinkSync(webmPath)   // remove the webm, keep only wav
+      return wavPath
+    } catch (err: any) {
+      // Clean up and surface the error
+      try { unlinkSync(webmPath) } catch {}
+      throw new Error(`ffmpeg conversion failed: ${err.message}`)
+    }
   })
 
   console.log('Speaker recognition IPC handlers registered')
