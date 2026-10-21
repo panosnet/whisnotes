@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { Users, Plus, Trash2, Mic, Upload, CheckCircle2, Loader2, ScanFace } from 'lucide-react'
+import { Users, Plus, Trash2, Mic, Upload, CheckCircle2, Loader2, ScanFace, Square } from 'lucide-react'
 import { useMeetingStore } from '../stores/meetingStore'
 
 interface SpeakerProfile {
@@ -152,17 +152,83 @@ function CreatePersonForm({ onCreated, onCancel }: { onCreated: (p: SpeakerProfi
 function PersonCard({ person, onDelete, onSampleAdded }: { person: SpeakerProfile; onDelete: () => void; onSampleAdded: () => void }) {
   const { meetings } = useMeetingStore()
   const [expanded, setExpanded] = useState(false)
-  const [addingSource, setAddingSource] = useState<'meeting' | 'file' | null>(null)
+  const [addingSource, setAddingSource] = useState<'meeting' | 'file' | 'live' | null>(null)
   const [meetingId, setMeetingId] = useState('')
   const [adding, setAdding] = useState(false)
   const [addError, setAddError] = useState<string | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
 
-  const meetingsWithRecording = meetings.filter((m: any) => m.durationSeconds && m.durationSeconds > 3)
+  // Live recording state
+  const [liveRecording, setLiveRecording] = useState(false)
+  const [liveSeconds, setLiveSeconds] = useState(0)
+  const recorderRef = useRef<MediaRecorder | null>(null)
+  const chunksRef = useRef<Blob[]>([])
+  const liveTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const liveStartRef = useRef(0)
 
+  const meetingsWithRecording = meetings.filter((m: any) => m.durationSeconds && m.durationSeconds > 3)
   const lastSeen = person.lastSeenAt
     ? new Date(person.lastSeenAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
     : 'Never'
+
+  const startLiveRecording = async () => {
+    setAddError(null)
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      chunksRef.current = []
+      const rec = new MediaRecorder(stream, { mimeType: 'audio/webm' })
+      recorderRef.current = rec
+      rec.ondataavailable = e => { if (e.data.size > 0) chunksRef.current.push(e.data) }
+      rec.start(200)
+      liveStartRef.current = Date.now()
+      setLiveRecording(true)
+      setLiveSeconds(0)
+      liveTimerRef.current = setInterval(() => {
+        setLiveSeconds(Math.floor((Date.now() - liveStartRef.current) / 1000))
+      }, 500)
+    } catch (e: any) {
+      setAddError('Microphone access denied: ' + e.message)
+    }
+  }
+
+  const stopLiveRecording = async () => {
+    if (liveTimerRef.current) { clearInterval(liveTimerRef.current); liveTimerRef.current = null }
+    setLiveRecording(false)
+
+    const rec = recorderRef.current
+    if (!rec) return
+
+    await new Promise<void>(resolve => {
+      rec.onstop = () => resolve()
+      rec.stop()
+      rec.stream.getTracks().forEach(t => t.stop())
+    })
+
+    if (liveSeconds < 2) { setAddError('Recording too short — speak for at least 2 seconds'); return }
+
+    setAdding(true)
+    try {
+      const blob = new Blob(chunksRef.current, { type: 'audio/webm' })
+      const buf = await blob.arrayBuffer()
+      // Save to disk via IPC, get back a file path to register
+      const savedPath = await window.api.invoke('speakers:save-live-sample', person.id, Array.from(new Uint8Array(buf)))
+      if (!savedPath) throw new Error('Failed to save recording')
+      await window.api.speakers.registerSample(person.id, savedPath)
+      setAddingSource(null)
+      onSampleAdded()
+    } catch (e: any) { setAddError(e.message) }
+    finally { setAdding(false) }
+  }
+
+  const cancelLive = () => {
+    if (liveTimerRef.current) { clearInterval(liveTimerRef.current); liveTimerRef.current = null }
+    recorderRef.current?.stream.getTracks().forEach(t => t.stop())
+    recorderRef.current?.stop()
+    recorderRef.current = null
+    setLiveRecording(false)
+    setLiveSeconds(0)
+    setAddingSource(null)
+  }
 
   const handleAddSample = async () => {
     setAddError(null)
@@ -233,7 +299,14 @@ function PersonCard({ person, onDelete, onSampleAdded }: { person: SpeakerProfil
           <input ref={fileRef} type="file" accept=".wav,.mp3,.m4a,.ogg,.flac" className="hidden" />
 
           {!addingSource && (
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => { setAddingSource('live'); startLiveRecording() }}
+                className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all"
+                style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171' }}
+              >
+                <Mic size={13} /> Record now
+              </button>
               <button
                 onClick={() => setAddingSource('meeting')}
                 className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all"
@@ -244,6 +317,39 @@ function PersonCard({ person, onDelete, onSampleAdded }: { person: SpeakerProfil
                 className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-all"
                 style={{ background: 'var(--bg-raised)', border: '1px solid var(--border)', color: '#94a3b8' }}
               ><Upload size={13} /> Upload file</button>
+            </div>
+          )}
+
+          {/* Live recording UI */}
+          {addingSource === 'live' && (
+            <div className="space-y-3">
+              {liveRecording ? (
+                <div className="flex items-center gap-3 px-4 py-3 rounded-xl" style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}>
+                  <span className="w-2.5 h-2.5 rounded-full rec-pulse flex-shrink-0" style={{ background: '#ef4444' }} />
+                  <div className="flex-1">
+                    <div style={{ fontSize: '0.78rem', color: '#f87171', fontWeight: 500 }}>Recording…</div>
+                    <div style={{ fontSize: '0.7rem', color: '#94a3b8', marginTop: 1 }}>
+                      {String(Math.floor(liveSeconds / 60)).padStart(2,'0')}:{String(liveSeconds % 60).padStart(2,'0')} · Speak clearly for 5–30 seconds
+                    </div>
+                  </div>
+                  <button
+                    onClick={stopLiveRecording}
+                    disabled={adding}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all disabled:opacity-50"
+                    style={{ background: '#ef4444', color: 'white' }}
+                  >
+                    <Square size={11} /> Stop & Register
+                  </button>
+                </div>
+              ) : adding ? (
+                <div className="flex items-center gap-2 text-xs" style={{ color: 'var(--text-muted)' }}>
+                  <Loader2 size={13} className="animate-spin" /> Processing voice sample…
+                </div>
+              ) : null}
+              {addError && <p style={{ fontSize: '0.72rem', color: '#f87171' }}>{addError}</p>}
+              {!liveRecording && !adding && (
+                <button onClick={cancelLive} className="px-3 py-1.5 rounded-lg text-xs" style={{ background: 'var(--bg-raised)', color: 'var(--text-muted)' }}>Cancel</button>
+              )}
             </div>
           )}
 

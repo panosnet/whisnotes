@@ -144,5 +144,20 @@ export function registerSpeakerHandlers() {
     return { updated }
   })
 
+  /**
+   * Save a live-recorded audio buffer (webm from MediaRecorder) to disk
+   * so speaker_server.py can read it for embedding extraction.
+   */
+  ipcMain.handle('speakers:save-live-sample', async (_e, speakerId: string, uint8Array: number[]) => {
+    const { writeFileSync, mkdirSync } = await import('fs')
+    const { join } = await import('path')
+    const { app: _app } = await import('electron')
+    const dir = join(_app.getPath('userData'), 'speaker-embeddings')
+    mkdirSync(dir, { recursive: true })
+    const path = join(dir, `${speakerId}.live-${Date.now()}.webm`)
+    writeFileSync(path, Buffer.from(uint8Array))
+    return path
+  })
+
   console.log('Speaker recognition IPC handlers registered')
 }
